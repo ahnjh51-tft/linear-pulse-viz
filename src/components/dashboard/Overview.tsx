@@ -132,21 +132,27 @@ export const Overview = () => {
             <CardTitle>Project Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={projectChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {projectChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={projectChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No projects found
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -155,31 +161,37 @@ export const Overview = () => {
             <CardTitle>Issue Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={issueChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {issueChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {issueChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={issueChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {issueChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No issues found
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -190,44 +202,50 @@ export const Overview = () => {
           <CardTitle>Recent Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {projects.slice(0, 10).map((project: any) => (
-              <div
-                key={project.id}
-                className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={cn(
-                      'w-2 h-2 rounded-full',
-                      project.state === 'completed' && 'bg-success',
-                      project.state === 'started' && 'bg-primary',
-                      project.state === 'planned' && 'bg-muted-foreground',
-                      project.state === 'paused' && 'bg-warning',
-                      project.state === 'canceled' && 'bg-destructive'
+          {projects.length > 0 ? (
+            <div className="space-y-3">
+              {projects.slice(0, 10).map((project: any) => (
+                <div
+                  key={project.id}
+                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        'w-2 h-2 rounded-full',
+                        project.state === 'completed' && 'bg-success',
+                        project.state === 'started' && 'bg-primary',
+                        project.state === 'planned' && 'bg-muted-foreground',
+                        project.state === 'paused' && 'bg-warning',
+                        project.state === 'canceled' && 'bg-destructive'
+                      )}
+                    />
+                    <div>
+                      <p className="font-medium">{project.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {project.state.charAt(0).toUpperCase() + project.state.slice(1)}
+                        {project.lead && ` • ${project.lead.name}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {project.progress !== null && (
+                      <p className="text-sm font-medium">{Math.round(project.progress * 100)}%</p>
                     )}
-                  />
-                  <div>
-                    <p className="font-medium">{project.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {project.state.charAt(0).toUpperCase() + project.state.slice(1)}
-                      {project.lead && ` • ${project.lead.name}`}
-                    </p>
+                    {project.targetDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Due {new Date(project.targetDate).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  {project.progress !== null && (
-                    <p className="text-sm font-medium">{Math.round(project.progress * 100)}%</p>
-                  )}
-                  {project.targetDate && (
-                    <p className="text-xs text-muted-foreground">
-                      Due {new Date(project.targetDate).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center text-muted-foreground">
+              No projects found for this team
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
