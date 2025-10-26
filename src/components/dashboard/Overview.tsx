@@ -19,12 +19,28 @@ import {
   Cell,
 } from 'recharts';
 
-const COLORS = {
+const PROJECT_STATE_COLORS: Record<string, string> = {
   completed: 'hsl(142, 76%, 36%)',
   started: 'hsl(261, 80%, 60%)',
+  in_progress: 'hsl(261, 80%, 60%)',
   planned: 'hsl(218, 11%, 65%)',
   paused: 'hsl(38, 92%, 50%)',
   canceled: 'hsl(0, 84%, 60%)',
+  unknown: 'hsl(213, 15%, 35%)',
+};
+
+const ISSUE_STATE_WEIGHTS: Record<string, number> = {
+  completed: 100,
+  done: 100,
+  finished: 100,
+  started: 60,
+  in_progress: 60,
+  inreview: 80,
+  blocked: 30,
+  backlog: 0,
+  todo: 0,
+  unstarted: 0,
+  canceled: 0,
 };
 
 export const Overview = () => {
@@ -43,25 +59,102 @@ export const Overview = () => {
   const projects = projectsData?.team?.projects?.nodes || [];
   const issues = issuesData?.team?.issues?.nodes || [];
 
+  const projectProgress = useMemo(() => {
+    const accumulator: Record<string, { total: number; count: number }> = {};
+
+    issues.forEach((issue: any) => {
+      if (!issue.project?.id) return;
+      const projectId = issue.project.id;
+      const type: string = (issue.state?.type || '').toLowerCase();
+      const stateName = issue.state?.name ? issue.state.name.toLowerCase() : '';
+      const weight = ISSUE_STATE_WEIGHTS[type] ?? ISSUE_STATE_WEIGHTS[stateName] ?? 0;
+
+      if (!accumulator[projectId]) {
+        accumulator[projectId] = { total: 0, count: 0 };
+      }
+
+      accumulator[projectId].total += weight;
+      accumulator[projectId].count += 1;
+    });
+
+    return Object.fromEntries(
+      Object.entries(accumulator).map(([projectId, value]) => {
+        const average = value.count > 0 ? Math.min(100, Math.max(0, value.total / value.count)) : 0;
+        return [projectId, average];
+      })
+    );
+  }, [issues]);
+
+  const decoratedProjects = useMemo(() => {
+    return projects.map((project: any) => {
+      let stateKey = 'unknown';
+      let stateLabel = 'Unknown';
+
+      if (typeof project.state === 'string') {
+        stateKey = project.state.toLowerCase();
+        stateLabel = project.state
+          .split('_')
+          .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(' ');
+      } else if (project.state?.type || project.state?.name) {
+        if (project.state?.type) {
+          stateKey = String(project.state.type).toLowerCase();
+          stateLabel = project.state.type
+            .split('_')
+            .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
+            .join(' ');
+        }
+
+        if (project.state?.name) {
+          stateLabel = project.state.name;
+        }
+
+        if (!project.state?.type && project.state?.name) {
+          stateKey = project.state.name.toLowerCase().replace(/\s+/g, '_');
+        }
+      }
+
+      const weightedProgress = projectProgress[project.id];
+      let progressValue: number | null = null;
+
+      if (typeof weightedProgress === 'number') {
+        progressValue = weightedProgress;
+      } else if (typeof project.progress === 'number') {
+        progressValue = project.progress > 1 ? project.progress : project.progress * 100;
+      } else if (typeof project.progress?.progress === 'number') {
+        const normalized = project.progress.progress;
+        progressValue = normalized > 1 ? normalized : normalized * 100;
+      }
+
+      return {
+        ...project,
+        stateKey,
+        stateLabel,
+        progressValue,
+      };
+    });
+  }, [projects, projectProgress]);
+
   const kpis = useMemo(() => {
-    const projectsByState = projects.reduce((acc: any, p: any) => {
-      acc[p.state] = (acc[p.state] || 0) + 1;
+    const projectsByState = decoratedProjects.reduce((acc: Record<string, number>, project: any) => {
+      const key = project.stateKey || 'unknown';
+      acc[key] = (acc[key] || 0) + 1;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     const issuesByState = issues.reduce((acc: any, i: any) => {
-      const type = i.state.type;
+      const type = (i.state?.type || 'unknown').toLowerCase();
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
 
-    const completedIssues = issues.filter((i: any) => i.state.type === 'completed').length;
+    const completedIssues = issues.filter((i: any) => i.state?.type === 'completed').length;
     const totalIssues = issues.length;
     const progressPercent = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
 
     return {
-      totalProjects: projects.length,
-      activeProjects: projectsByState.started || 0,
+      totalProjects: decoratedProjects.length,
+      activeProjects: projectsByState.started || projectsByState['in_progress'] || 0,
       completedProjects: projectsByState.completed || 0,
       totalIssues,
       completedIssues,
@@ -69,15 +162,30 @@ export const Overview = () => {
       projectsByState,
       issuesByState,
     };
-  }, [projects, issues]);
+  }, [decoratedProjects, issues]);
 
-  const projectChartData = Object.entries(kpis.projectsByState).map(([state, count]) => ({
-    name: state.charAt(0).toUpperCase() + state.slice(1),
-    value: count,
-  }));
+  const projectChartData = Object.entries(kpis.projectsByState).map(([state, count]) => {
+    const label = state === 'unknown'
+      ? 'Unknown'
+      : state
+          .split('_')
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(' ');
+    return {
+      name: label,
+      value: count,
+      state,
+    };
+  });
 
   const issueChartData = Object.entries(kpis.issuesByState).map(([type, count]) => ({
-    name: type.charAt(0).toUpperCase() + type.slice(1),
+    name:
+      type === 'unknown'
+        ? 'Unknown'
+        : type
+            .split('_')
+            .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+            .join(' '),
     value: count,
   }));
 
@@ -145,7 +253,12 @@ export const Overview = () => {
                       borderRadius: '8px',
                     }}
                   />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                    {projectChartData.map((entry, index) => {
+                      const color = PROJECT_STATE_COLORS[entry.state] || PROJECT_STATE_COLORS.unknown;
+                      return <Cell key={`project-bar-${index}`} fill={color} />;
+                    })}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -175,7 +288,10 @@ export const Overview = () => {
                     dataKey="value"
                   >
                     {issueChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={Object.values(PROJECT_STATE_COLORS)[index % Object.values(PROJECT_STATE_COLORS).length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
@@ -202,44 +318,66 @@ export const Overview = () => {
           <CardTitle>Recent Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {projects.length > 0 ? (
+          {decoratedProjects.length > 0 ? (
             <div className="space-y-3">
-              {projects.slice(0, 10).map((project: any) => (
-                <div
-                  key={project.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
-                >
-                  <div className="flex items-center gap-4">
+              {[...decoratedProjects]
+                .sort((a: any, b: any) => {
+                  const aTime = a.updatedAt
+                    ? new Date(a.updatedAt).getTime()
+                    : a.targetDate
+                      ? new Date(a.targetDate).getTime()
+                      : 0;
+                  const bTime = b.updatedAt
+                    ? new Date(b.updatedAt).getTime()
+                    : b.targetDate
+                      ? new Date(b.targetDate).getTime()
+                      : 0;
+                  return bTime - aTime;
+                })
+                .slice(0, 10)
+                .map((project: any) => {
+                  const stateKey = project.stateKey || 'unknown';
+                  const stateLabel = project.stateLabel;
+                  const progressValue = project.progressValue;
+
+                  return (
                     <div
-                      className={cn(
-                        'w-2 h-2 rounded-full',
-                        project.state === 'completed' && 'bg-success',
-                        project.state === 'started' && 'bg-primary',
-                        project.state === 'planned' && 'bg-muted-foreground',
-                        project.state === 'paused' && 'bg-warning',
-                        project.state === 'canceled' && 'bg-destructive'
-                      )}
-                    />
-                    <div>
-                      <p className="font-medium">{project.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {project.state.charAt(0).toUpperCase() + project.state.slice(1)}
-                        {project.lead && ` • ${project.lead.name}`}
-                      </p>
+                      key={project.id}
+                      className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={cn(
+                            'w-2 h-2 rounded-full',
+                            stateKey === 'completed' && 'bg-success',
+                            stateKey === 'started' && 'bg-primary',
+                            stateKey === 'planned' && 'bg-muted-foreground',
+                            stateKey === 'paused' && 'bg-warning',
+                            stateKey === 'canceled' && 'bg-destructive',
+                            stateKey === 'unknown' && 'bg-muted-foreground/70'
+                          )}
+                        />
+                        <div>
+                          <p className="font-medium">{project.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {stateLabel}
+                            {project.lead && ` • ${project.lead.name}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {progressValue !== null && progressValue !== undefined && (
+                          <p className="text-sm font-medium">{Math.round(progressValue)}%</p>
+                        )}
+                        {project.targetDate && (
+                          <p className="text-xs text-muted-foreground">
+                            Due {new Date(project.targetDate).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    {project.progress !== null && (
-                      <p className="text-sm font-medium">{Math.round(project.progress * 100)}%</p>
-                    )}
-                    {project.targetDate && (
-                      <p className="text-xs text-muted-foreground">
-                        Due {new Date(project.targetDate).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           ) : (
             <div className="py-12 text-center text-muted-foreground">
