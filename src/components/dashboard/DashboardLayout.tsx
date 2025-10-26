@@ -2,6 +2,13 @@ import { ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TeamSelector } from './TeamSelector';
 import { useLinear } from '@/contexts/LinearContext';
+import { Overview } from './Overview';
+import { TeamView } from './TeamView';
+import { LabelsView } from './LabelsView';
+import { PeopleView } from './PeopleView';
+import { ReportsView } from './ReportsView';
+import { BenchmarkView } from './BenchmarkView';
+import { SettingsView } from './SettingsView';
 import {
   BarChart3,
   Users,
@@ -15,21 +22,23 @@ import {
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 const navItems = [
-  { id: 'overview', label: 'Overview', icon: Home },
-  { id: 'team', label: 'Team', icon: Users },
-  { id: 'labels', label: 'Labels', icon: Tag },
-  { id: 'people', label: 'People', icon: Users },
-  { id: 'reports', label: 'Reports', icon: FileText },
-  { id: 'benchmark', label: 'Benchmark', icon: TrendingUp },
+  { id: 'overview', label: 'Overview', icon: Home, component: Overview },
+  { id: 'team', label: 'Team', icon: Users, component: TeamView },
+  { id: 'labels', label: 'Labels', icon: Tag, component: LabelsView },
+  { id: 'people', label: 'People', icon: Users, component: PeopleView },
+  { id: 'reports', label: 'Reports', icon: FileText, component: ReportsView },
+  { id: 'benchmark', label: 'Benchmark', icon: TrendingUp, component: BenchmarkView },
 ];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [activeView, setActiveView] = useState('overview');
   const { disconnect } = useLinear();
+
+  const ActiveComponent = navItems.find(item => item.id === activeView)?.component || Overview;
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,7 +113,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        {children}
+        <ActiveComponent />
       </main>
     </div>
   );
