@@ -8,6 +8,7 @@ import { LabelsView } from './LabelsView';
 import { PeopleView } from './PeopleView';
 import { ReportsView } from './ReportsView';
 import { BenchmarkView } from './BenchmarkView';
+import { ProjectsView } from './ProjectsView';
 import { SettingsView } from './SettingsView';
 import {
   BarChart3,
@@ -28,6 +29,7 @@ interface DashboardLayoutProps {
 const navItems = [
   { id: 'overview', label: 'Overview', icon: Home, component: Overview },
   { id: 'team', label: 'Team', icon: Users, component: TeamView },
+  { id: 'projects', label: 'Projects', icon: BarChart3, component: ProjectsView },
   { id: 'labels', label: 'Labels', icon: Tag, component: LabelsView },
   { id: 'people', label: 'People', icon: Users, component: PeopleView },
   { id: 'reports', label: 'Reports', icon: FileText, component: ReportsView },

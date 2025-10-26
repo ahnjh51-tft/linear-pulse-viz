@@ -40,20 +40,30 @@ export const GET_TEAM_PROJECTS = gql`
           id
           name
           state
-          progress
           targetDate
           startDate
           description
+          updatedAt
           lead {
             id
             name
             avatarUrl
           }
-          projectMilestones {
+          projectMilestones(first: 100) {
             nodes {
               id
               name
               targetDate
+              completedAt
+              description
+              sortOrder
+              labels {
+                nodes {
+                  id
+                  name
+                  color
+                }
+              }
             }
           }
         }
@@ -74,6 +84,8 @@ export const GET_TEAM_ISSUES = gql`
           priority
           createdAt
           completedAt
+          startedAt
+          dueDate
           estimate
           state {
             id
