@@ -19,12 +19,22 @@ import {
   Cell,
 } from 'recharts';
 
-const COLORS = {
-  completed: 'hsl(142, 76%, 36%)',
+const PROJECT_STATE_ORDER = ['planned', 'started', 'paused', 'canceled', 'completed'] as const;
+const PROJECT_STATE_LABELS: Record<(typeof PROJECT_STATE_ORDER)[number], string> = {
+  planned: 'Planned',
+  started: 'Started',
+  paused: 'Paused',
+  canceled: 'Canceled',
+  completed: 'Completed',
+};
+
+const ISSUE_COLORS: Record<string, string> = {
+  backlog: 'hsl(218, 11%, 65%)',
+  unstarted: 'hsl(220, 16%, 70%)',
   started: 'hsl(261, 80%, 60%)',
-  planned: 'hsl(218, 11%, 65%)',
-  paused: 'hsl(38, 92%, 50%)',
+  completed: 'hsl(142, 76%, 36%)',
   canceled: 'hsl(0, 84%, 60%)',
+  triage: 'hsl(38, 92%, 50%)',
 };
 
 export const Overview = () => {
@@ -43,11 +53,45 @@ export const Overview = () => {
   const projects = projectsData?.team?.projects?.nodes || [];
   const issues = issuesData?.team?.issues?.nodes || [];
 
-  const kpis = useMemo(() => {
-    const projectsByState = projects.reduce((acc: any, p: any) => {
-      acc[p.state] = (acc[p.state] || 0) + 1;
+  const projectIssueStats = useMemo(() => {
+    return issues.reduce((acc: Record<string, { total: number; completed: number }>, issue: any) => {
+      const projectId = issue.project?.id;
+      if (!projectId) return acc;
+      if (!acc[projectId]) {
+        acc[projectId] = { total: 0, completed: 0 };
+      }
+      acc[projectId].total += 1;
+      if (issue.state?.type === 'completed') {
+        acc[projectId].completed += 1;
+      }
       return acc;
     }, {});
+  }, [issues]);
+
+  const projectsWithProgress = useMemo(() => {
+    return projects.map((project: any) => {
+      const stats = projectIssueStats[project.id];
+      const progress = stats && stats.total > 0 ? stats.completed / stats.total : null;
+      return {
+        ...project,
+        normalizedState: (project.state || 'planned').toLowerCase(),
+        progress,
+      };
+    });
+  }, [projects, projectIssueStats]);
+
+  const kpis = useMemo(() => {
+    const projectsByState = PROJECT_STATE_ORDER.reduce((acc, state) => {
+      acc[state] = 0;
+      return acc;
+    }, {} as Record<(typeof PROJECT_STATE_ORDER)[number], number>);
+
+    projectsWithProgress.forEach((project: any) => {
+      const state = PROJECT_STATE_ORDER.includes(project.normalizedState)
+        ? project.normalizedState
+        : 'planned';
+      projectsByState[state as (typeof PROJECT_STATE_ORDER)[number]] += 1;
+    });
 
     const issuesByState = issues.reduce((acc: any, i: any) => {
       const type = i.state.type;
@@ -69,16 +113,17 @@ export const Overview = () => {
       projectsByState,
       issuesByState,
     };
-  }, [projects, issues]);
+  }, [projects, projectsWithProgress, issues]);
 
-  const projectChartData = Object.entries(kpis.projectsByState).map(([state, count]) => ({
-    name: state.charAt(0).toUpperCase() + state.slice(1),
-    value: count,
+  const projectChartData = PROJECT_STATE_ORDER.map((state) => ({
+    name: PROJECT_STATE_LABELS[state],
+    value: kpis.projectsByState[state] || 0,
   }));
 
   const issueChartData = Object.entries(kpis.issuesByState).map(([type, count]) => ({
     name: type.charAt(0).toUpperCase() + type.slice(1),
     value: count,
+    type,
   }));
 
   const loading = projectsLoading || issuesLoading;
@@ -175,7 +220,10 @@ export const Overview = () => {
                     dataKey="value"
                   >
                     {issueChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={ISSUE_COLORS[entry.type.toLowerCase()] || 'hsl(var(--primary))'}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
@@ -202,9 +250,17 @@ export const Overview = () => {
           <CardTitle>Recent Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {projects.length > 0 ? (
+          {projectsWithProgress.length > 0 ? (
             <div className="space-y-3">
-              {projects.slice(0, 10).map((project: any) => (
+              {projectsWithProgress
+                .slice()
+                .sort((a: any, b: any) => {
+                  const aDate = new Date(a.updatedAt || a.targetDate || a.startDate || 0).getTime();
+                  const bDate = new Date(b.updatedAt || b.targetDate || b.startDate || 0).getTime();
+                  return bDate - aDate;
+                })
+                .slice(0, 10)
+                .map((project: any) => (
                 <div
                   key={project.id}
                   className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
@@ -229,7 +285,7 @@ export const Overview = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    {project.progress !== null && (
+                    {project.progress != null && (
                       <p className="text-sm font-medium">{Math.round(project.progress * 100)}%</p>
                     )}
                     {project.targetDate && (

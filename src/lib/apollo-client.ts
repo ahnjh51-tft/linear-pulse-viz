@@ -10,7 +10,7 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `${token}` : '',
+      authorization: token ? `Bearer ${token}` : '',
     },
   };
 });
@@ -34,7 +34,7 @@ export const createApolloClientWithKey = (apiKey: string) => {
     return {
       headers: {
         ...headers,
-        authorization: apiKey,
+        authorization: apiKey ? `Bearer ${apiKey}` : '',
       },
     };
   });
