@@ -22,6 +22,7 @@ import {
 const PROJECT_STATE_COLORS: Record<string, string> = {
   completed: 'hsl(142, 76%, 36%)',
   started: 'hsl(261, 80%, 60%)',
+  in_progress: 'hsl(261, 80%, 60%)',
   planned: 'hsl(218, 11%, 65%)',
   paused: 'hsl(38, 92%, 50%)',
   canceled: 'hsl(0, 84%, 60%)',
@@ -84,9 +85,43 @@ export const Overview = () => {
     );
   }, [issues]);
 
+  const normalizedProjects = useMemo(() => {
+    return projects.map((project: any) => {
+      const stateType =
+        (project?.state?.type || project?.state || 'unknown')
+          .toString()
+          .toLowerCase();
+      const stateLabel =
+        project?.state?.name ||
+        stateType
+          .split('_')
+          .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(' ');
+
+      const progressRaw = projectProgress[project.id];
+      let progressValue: number | null = null;
+
+      if (typeof progressRaw === 'number') {
+        progressValue = progressRaw;
+      } else if (typeof project.progress === 'number') {
+        progressValue = project.progress > 1 ? project.progress : project.progress * 100;
+      } else if (typeof project.progress?.progress === 'number') {
+        const normalized = project.progress.progress;
+        progressValue = normalized > 1 ? normalized : normalized * 100;
+      }
+
+      return {
+        ...project,
+        stateType,
+        stateLabel,
+        progressValue,
+      };
+    });
+  }, [projects, projectProgress]);
+
   const kpis = useMemo(() => {
-    const projectsByState = projects.reduce((acc: Record<string, number>, p: any) => {
-      const key = typeof p.state === 'string' && p.state.length > 0 ? p.state.toLowerCase() : 'unknown';
+    const projectsByState = normalizedProjects.reduce((acc: Record<string, number>, project: any) => {
+      const key = project.stateType || 'unknown';
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -102,8 +137,8 @@ export const Overview = () => {
     const progressPercent = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
 
     return {
-      totalProjects: projects.length,
-      activeProjects: projectsByState.started || 0,
+      totalProjects: normalizedProjects.length,
+      activeProjects: projectsByState.started || projectsByState['in_progress'] || 0,
       completedProjects: projectsByState.completed || 0,
       totalIssues,
       completedIssues,
@@ -111,7 +146,7 @@ export const Overview = () => {
       projectsByState,
       issuesByState,
     };
-  }, [projects, issues]);
+  }, [normalizedProjects, issues]);
 
   const projectChartData = Object.entries(kpis.projectsByState).map(([state, count]) => {
     const label = state === 'unknown'
@@ -267,61 +302,64 @@ export const Overview = () => {
           <CardTitle>Recent Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {projects.length > 0 ? (
+          {normalizedProjects.length > 0 ? (
             <div className="space-y-3">
-              {[...projects]
+              {[...normalizedProjects]
                 .sort((a: any, b: any) => {
-                  const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : a.targetDate ? new Date(a.targetDate).getTime() : 0;
-                  const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : b.targetDate ? new Date(b.targetDate).getTime() : 0;
+                  const aTime = a.updatedAt
+                    ? new Date(a.updatedAt).getTime()
+                    : a.targetDate
+                      ? new Date(a.targetDate).getTime()
+                      : 0;
+                  const bTime = b.updatedAt
+                    ? new Date(b.updatedAt).getTime()
+                    : b.targetDate
+                      ? new Date(b.targetDate).getTime()
+                      : 0;
                   return bTime - aTime;
                 })
                 .slice(0, 10)
                 .map((project: any) => {
-                  const stateKey = typeof project.state === 'string' && project.state.length > 0 ? project.state.toLowerCase() : 'unknown';
-                  const stateLabel = stateKey === 'unknown'
-                    ? 'Unknown'
-                    : stateKey
-                        .split('_')
-                        .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
-                        .join(' ');
-                  const progressValue = projectProgress[project.id] ?? (typeof project.progress === 'number' ? project.progress * 100 : null);
+                  const stateKey = project.stateType || 'unknown';
+                  const stateLabel = project.stateLabel;
+                  const progressValue = project.progressValue;
 
                   return (
-                <div
-                  key={project.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
-                >
-                  <div className="flex items-center gap-4">
                     <div
-                      className={cn(
-                        'w-2 h-2 rounded-full',
-                        stateKey === 'completed' && 'bg-success',
-                        stateKey === 'started' && 'bg-primary',
-                        stateKey === 'planned' && 'bg-muted-foreground',
-                        stateKey === 'paused' && 'bg-warning',
-                        stateKey === 'canceled' && 'bg-destructive',
-                        stateKey === 'unknown' && 'bg-muted-foreground/70'
-                      )}
-                    />
-                    <div>
-                      <p className="font-medium">{project.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {stateLabel}
-                        {project.lead && ` • ${project.lead.name}`}
-                      </p>
+                      key={project.id}
+                      className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={cn(
+                            'w-2 h-2 rounded-full',
+                            stateKey === 'completed' && 'bg-success',
+                            stateKey === 'started' && 'bg-primary',
+                            stateKey === 'planned' && 'bg-muted-foreground',
+                            stateKey === 'paused' && 'bg-warning',
+                            stateKey === 'canceled' && 'bg-destructive',
+                            stateKey === 'unknown' && 'bg-muted-foreground/70'
+                          )}
+                        />
+                        <div>
+                          <p className="font-medium">{project.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {stateLabel}
+                            {project.lead && ` • ${project.lead.name}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {progressValue !== null && progressValue !== undefined && (
+                          <p className="text-sm font-medium">{Math.round(progressValue)}%</p>
+                        )}
+                        {project.targetDate && (
+                          <p className="text-xs text-muted-foreground">
+                            Due {new Date(project.targetDate).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    {progressValue !== null && progressValue !== undefined && (
-                      <p className="text-sm font-medium">{Math.round(progressValue)}%</p>
-                    )}
-                    {project.targetDate && (
-                      <p className="text-xs text-muted-foreground">
-                        Due {new Date(project.targetDate).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
                   );
                 })}
             </div>

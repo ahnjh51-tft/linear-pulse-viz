@@ -39,7 +39,11 @@ export const GET_TEAM_PROJECTS = gql`
         nodes {
           id
           name
-          state
+          state {
+            id
+            name
+            type
+          }
           progress
           targetDate
           startDate

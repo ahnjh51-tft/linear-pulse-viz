@@ -73,7 +73,7 @@ type ProjectNode = {
   description?: string | null;
   startDate?: string | null;
   targetDate?: string | null;
-  state?: string | null;
+  state?: { id: string; name: string; type: string } | null;
   progress?: number | null;
   updatedAt?: string | null;
   lead?: { id: string; name: string; avatarUrl?: string | null } | null;
@@ -92,13 +92,29 @@ const DATE_PRESETS = [
   { label: 'All time', value: 'all' },
 ];
 
-const getStateKey = (value?: string | null) => {
+const getStateKey = (
+  value?: string | { type?: string | null; name?: string | null } | null
+) => {
   if (!value) return 'unknown';
-  return value.toLowerCase();
+  if (typeof value === 'string') {
+    return value.toLowerCase();
+  }
+  if (value.type) {
+    return value.type.toLowerCase();
+  }
+  if (value.name) {
+    return value.name.toLowerCase().replace(/\s+/g, '_');
+  }
+  return 'unknown';
 };
 
-const formatStateLabel = (value: string) => {
-  if (!value || value === 'unknown') return 'Unknown';
+const formatStateLabel = (
+  value: string,
+  fallbackName?: string | null
+) => {
+  if (!value || value === 'unknown') {
+    return fallbackName || 'Unknown';
+  }
   return value
     .split('_')
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
@@ -573,7 +589,7 @@ export const ProjectsView = () => {
                       )}
                     </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {formatStateLabel(stateKey)}
+                  {formatStateLabel(stateKey, project.state?.name)}
                   {project.lead?.name ? ` • ${project.lead.name}` : ''}
                 </p>
                 <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
@@ -611,7 +627,7 @@ export const ProjectsView = () => {
                 <CardTitle className="text-2xl font-semibold flex items-center gap-3">
                   {selectedProject.name}
                   <Badge variant="outline" className="border-border/60 bg-secondary/40">
-                    {formatStateLabel(getStateKey(selectedProject.state))}
+                    {formatStateLabel(getStateKey(selectedProject.state), selectedProject.state?.name)}
                   </Badge>
                 </CardTitle>
                 <p className="text-muted-foreground text-sm">
