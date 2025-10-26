@@ -85,24 +85,40 @@ export const Overview = () => {
     );
   }, [issues]);
 
-  const normalizedProjects = useMemo(() => {
+  const decoratedProjects = useMemo(() => {
     return projects.map((project: any) => {
-      const stateType =
-        (project?.state?.type || project?.state || 'unknown')
-          .toString()
-          .toLowerCase();
-      const stateLabel =
-        project?.state?.name ||
-        stateType
+      let stateKey = 'unknown';
+      let stateLabel = 'Unknown';
+
+      if (typeof project.state === 'string') {
+        stateKey = project.state.toLowerCase();
+        stateLabel = project.state
           .split('_')
           .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
           .join(' ');
+      } else if (project.state?.type || project.state?.name) {
+        if (project.state?.type) {
+          stateKey = String(project.state.type).toLowerCase();
+          stateLabel = project.state.type
+            .split('_')
+            .map((segment: string) => segment.charAt(0).toUpperCase() + segment.slice(1))
+            .join(' ');
+        }
 
-      const progressRaw = projectProgress[project.id];
+        if (project.state?.name) {
+          stateLabel = project.state.name;
+        }
+
+        if (!project.state?.type && project.state?.name) {
+          stateKey = project.state.name.toLowerCase().replace(/\s+/g, '_');
+        }
+      }
+
+      const weightedProgress = projectProgress[project.id];
       let progressValue: number | null = null;
 
-      if (typeof progressRaw === 'number') {
-        progressValue = progressRaw;
+      if (typeof weightedProgress === 'number') {
+        progressValue = weightedProgress;
       } else if (typeof project.progress === 'number') {
         progressValue = project.progress > 1 ? project.progress : project.progress * 100;
       } else if (typeof project.progress?.progress === 'number') {
@@ -112,7 +128,7 @@ export const Overview = () => {
 
       return {
         ...project,
-        stateType,
+        stateKey,
         stateLabel,
         progressValue,
       };
@@ -120,8 +136,8 @@ export const Overview = () => {
   }, [projects, projectProgress]);
 
   const kpis = useMemo(() => {
-    const projectsByState = normalizedProjects.reduce((acc: Record<string, number>, project: any) => {
-      const key = project.stateType || 'unknown';
+    const projectsByState = decoratedProjects.reduce((acc: Record<string, number>, project: any) => {
+      const key = project.stateKey || 'unknown';
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -137,7 +153,7 @@ export const Overview = () => {
     const progressPercent = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
 
     return {
-      totalProjects: normalizedProjects.length,
+      totalProjects: decoratedProjects.length,
       activeProjects: projectsByState.started || projectsByState['in_progress'] || 0,
       completedProjects: projectsByState.completed || 0,
       totalIssues,
@@ -146,7 +162,7 @@ export const Overview = () => {
       projectsByState,
       issuesByState,
     };
-  }, [normalizedProjects, issues]);
+  }, [decoratedProjects, issues]);
 
   const projectChartData = Object.entries(kpis.projectsByState).map(([state, count]) => {
     const label = state === 'unknown'
@@ -302,9 +318,9 @@ export const Overview = () => {
           <CardTitle>Recent Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {normalizedProjects.length > 0 ? (
+          {decoratedProjects.length > 0 ? (
             <div className="space-y-3">
-              {[...normalizedProjects]
+              {[...decoratedProjects]
                 .sort((a: any, b: any) => {
                   const aTime = a.updatedAt
                     ? new Date(a.updatedAt).getTime()
@@ -320,7 +336,7 @@ export const Overview = () => {
                 })
                 .slice(0, 10)
                 .map((project: any) => {
-                  const stateKey = project.stateType || 'unknown';
+                  const stateKey = project.stateKey || 'unknown';
                   const stateLabel = project.stateLabel;
                   const progressValue = project.progressValue;
 
