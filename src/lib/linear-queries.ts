@@ -44,6 +44,7 @@ export const GET_TEAM_PROJECTS = gql`
           targetDate
           startDate
           description
+          updatedAt
           lead {
             id
             name
@@ -74,6 +75,9 @@ export const GET_TEAM_ISSUES = gql`
           priority
           createdAt
           completedAt
+          startedAt
+          dueDate
+          updatedAt
           estimate
           state {
             id

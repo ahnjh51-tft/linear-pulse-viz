@@ -9,6 +9,7 @@ import { PeopleView } from './PeopleView';
 import { ReportsView } from './ReportsView';
 import { BenchmarkView } from './BenchmarkView';
 import { SettingsView } from './SettingsView';
+import { ProjectsView } from './ProjectsView';
 import {
   BarChart3,
   Users,
@@ -18,6 +19,7 @@ import {
   TrendingUp,
   LogOut,
   Home,
+  Folder,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +29,7 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: Home, component: Overview },
+  { id: 'projects', label: 'Projects', icon: Folder, component: ProjectsView },
   { id: 'team', label: 'Team', icon: Users, component: TeamView },
   { id: 'labels', label: 'Labels', icon: Tag, component: LabelsView },
   { id: 'people', label: 'People', icon: Users, component: PeopleView },
@@ -38,7 +41,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [activeView, setActiveView] = useState('overview');
   const { disconnect } = useLinear();
 
-  const ActiveComponent = navItems.find(item => item.id === activeView)?.component || Overview;
+  const ActiveComponent =
+    activeView === 'settings'
+      ? SettingsView
+      : navItems.find(item => item.id === activeView)?.component || Overview;
 
   return (
     <div className="min-h-screen bg-background">
