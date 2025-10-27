@@ -23,7 +23,7 @@ const LABEL_COLORS = [
   'hsl(280, 70%, 55%)',
 ];
 
-export const LabelsView = () => {
+export const IssuesView = () => {
   const { selectedTeamId } = useLinear();
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   
@@ -79,8 +79,8 @@ export const LabelsView = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Labels</h2>
-        <p className="text-muted-foreground">Issue distribution across labels</p>
+        <h2 className="text-2xl font-bold mb-2">Issues</h2>
+        <p className="text-muted-foreground">View and filter issues by labels</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

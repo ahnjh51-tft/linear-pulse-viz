@@ -45,12 +45,13 @@ export const Overview = () => {
 
   const kpis = useMemo(() => {
     const projectsByState = projects.reduce((acc: any, p: any) => {
-      acc[p.state] = (acc[p.state] || 0) + 1;
+      const normalizedState = typeof p.state === 'string' ? p.state.toLowerCase() : 'planned';
+      acc[normalizedState] = (acc[normalizedState] || 0) + 1;
       return acc;
     }, {});
 
     const issuesByState = issues.reduce((acc: any, i: any) => {
-      const type = i.state.type;
+      const type = typeof i.state?.type === 'string' ? i.state.type.toLowerCase() : 'unknown';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
@@ -213,11 +214,11 @@ export const Overview = () => {
                     <div
                       className={cn(
                         'w-2 h-2 rounded-full',
-                        project.state === 'completed' && 'bg-success',
-                        project.state === 'started' && 'bg-primary',
-                        project.state === 'planned' && 'bg-muted-foreground',
-                        project.state === 'paused' && 'bg-warning',
-                        project.state === 'canceled' && 'bg-destructive'
+                        project.state?.toLowerCase() === 'completed' && 'bg-success',
+                        project.state?.toLowerCase() === 'started' && 'bg-primary',
+                        project.state?.toLowerCase() === 'planned' && 'bg-muted-foreground',
+                        project.state?.toLowerCase() === 'paused' && 'bg-warning',
+                        project.state?.toLowerCase() === 'canceled' && 'bg-destructive'
                       )}
                     />
                     <div>

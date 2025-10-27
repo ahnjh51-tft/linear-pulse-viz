@@ -4,7 +4,8 @@ import { TeamSelector } from './TeamSelector';
 import { useLinear } from '@/contexts/LinearContext';
 import { Overview } from './Overview';
 import { TeamView } from './TeamView';
-import { LabelsView } from './LabelsView';
+import { IssuesView } from './LabelsView';
+import { ProjectsView } from './ProjectsView';
 import { PeopleView } from './PeopleView';
 import { ReportsView } from './ReportsView';
 import { BenchmarkView } from './BenchmarkView';
@@ -18,6 +19,7 @@ import {
   TrendingUp,
   LogOut,
   Home,
+  Folder,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +30,8 @@ interface DashboardLayoutProps {
 const navItems = [
   { id: 'overview', label: 'Overview', icon: Home, component: Overview },
   { id: 'team', label: 'Team', icon: Users, component: TeamView },
-  { id: 'labels', label: 'Labels', icon: Tag, component: LabelsView },
+  { id: 'projects', label: 'Projects', icon: Folder, component: ProjectsView },
+  { id: 'issues', label: 'Issues', icon: Tag, component: IssuesView },
   { id: 'people', label: 'People', icon: Users, component: PeopleView },
   { id: 'reports', label: 'Reports', icon: FileText, component: ReportsView },
   { id: 'benchmark', label: 'Benchmark', icon: TrendingUp, component: BenchmarkView },
