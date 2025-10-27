@@ -48,7 +48,14 @@ export const ProjectsView = () => {
 
   const projects = projectsData?.team?.projects?.nodes || [];
   const issues = issuesData?.team?.issues?.nodes || [];
-  const milestones = milestonesData?.project?.projectMilestones?.nodes || [];
+  const milestones = useMemo(() => {
+    const nodes = milestonesData?.project?.projectMilestones?.nodes || [];
+    return [...nodes].sort((a: any, b: any) => {
+      if (!a.targetDate) return 1;
+      if (!b.targetDate) return -1;
+      return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
+    });
+  }, [milestonesData]);
 
   // Get all unique labels from issues
   const allLabels = useMemo(() => {

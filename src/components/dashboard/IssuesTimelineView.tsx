@@ -5,8 +5,9 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, TrendingUp, PieChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const IssuesTimelineView = () => {
   const { selectedTeamId } = useLinear();
@@ -57,6 +58,55 @@ export const IssuesTimelineView = () => {
       return matchesLabel && matchesStatus;
     });
   }, [issues, labelFilter, statusFilter]);
+
+  // Calculate completion rate
+  const completionStats = useMemo(() => {
+    const total = filteredIssues.length;
+    const completed = filteredIssues.filter((i: any) => i.state?.type === 'completed').length;
+    const inProgress = filteredIssues.filter((i: any) => i.state?.type === 'started').length;
+    const todo = filteredIssues.filter((i: any) => i.state?.type === 'unstarted').length;
+    const canceled = filteredIssues.filter((i: any) => i.state?.type === 'canceled').length;
+    
+    return {
+      total,
+      completed,
+      inProgress,
+      todo,
+      canceled,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+  }, [filteredIssues]);
+
+  // Status distribution for pie chart
+  const statusDistribution = useMemo(() => {
+    const distribution = [
+      { name: 'Completed', value: completionStats.completed, color: 'hsl(var(--success))' },
+      { name: 'In Progress', value: completionStats.inProgress, color: 'hsl(var(--primary))' },
+      { name: 'To Do', value: completionStats.todo, color: 'hsl(var(--muted-foreground))' },
+      { name: 'Canceled', value: completionStats.canceled, color: 'hsl(var(--destructive))' }
+    ];
+    return distribution.filter(d => d.value > 0);
+  }, [completionStats]);
+
+  // Label distribution for bar chart
+  const labelDistribution = useMemo(() => {
+    const labelMap = new Map();
+    filteredIssues.forEach((issue: any) => {
+      issue.labels?.nodes?.forEach((label: any) => {
+        const existing = labelMap.get(label.id) || { name: label.name, color: label.color, total: 0, completed: 0 };
+        existing.total += 1;
+        if (issue.state?.type === 'completed') {
+          existing.completed += 1;
+        }
+        labelMap.set(label.id, existing);
+      });
+    });
+    
+    return Array.from(labelMap.values()).map(item => ({
+      ...item,
+      completionRate: item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
+    })).sort((a, b) => b.total - a.total).slice(0, 10);
+  }, [filteredIssues]);
 
   // Group issues by creation month for timeline
   const issuesByMonth = useMemo(() => {
@@ -145,6 +195,84 @@ export const IssuesTimelineView = () => {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Stats and Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Completion Rate Card */}
+        <Card className="bg-card border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Completion Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-5xl font-bold text-primary">{completionStats.completionRate}%</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {completionStats.completed} of {completionStats.total} issues completed
+                </p>
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <RePieChart>
+                  <Pie
+                    data={statusDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {statusDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RePieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Label Completion Chart */}
+        <Card className="bg-card border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="w-5 h-5" />
+              Completion by Label
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={labelDistribution}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Issues" />
+                <Bar dataKey="completed" fill="hsl(var(--success))" name="Completed" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Timeline */}
