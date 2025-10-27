@@ -1,10 +1,11 @@
 import { useQuery as useApolloQuery } from '@apollo/client';
 import { useLinear } from '@/contexts/LinearContext';
-import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES } from '@/lib/linear-queries';
+import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES, GET_ALL_LABELS } from '@/lib/linear-queries';
 import { KPICard } from './KPICard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Folder, CheckCircle2, AlertCircle, Users, Activity } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   BarChart,
@@ -29,6 +30,7 @@ const COLORS = {
 
 export const Overview = () => {
   const { selectedTeamId } = useLinear();
+  const [projectLabelFilter, setProjectLabelFilter] = useState<string>('all');
   
   const { data: projectsData, loading: projectsLoading } = useApolloQuery(GET_TEAM_PROJECTS, {
     variables: { teamId: selectedTeamId },
@@ -40,8 +42,39 @@ export const Overview = () => {
     skip: !selectedTeamId,
   });
 
+  const { data: labelsData } = useApolloQuery(GET_ALL_LABELS);
+
   const projects = projectsData?.team?.projects?.nodes || [];
   const issues = issuesData?.team?.issues?.nodes || [];
+
+  // Get all unique labels
+  const allLabels = useMemo(() => {
+    const labelSet = new Map();
+    issues.forEach((issue: any) => {
+      issue.labels?.nodes?.forEach((label: any) => {
+        if (!labelSet.has(label.id)) {
+          labelSet.set(label.id, label);
+        }
+      });
+    });
+    labelsData?.issueLabels?.nodes?.forEach((label: any) => {
+      if (!labelSet.has(label.id)) {
+        labelSet.set(label.id, label);
+      }
+    });
+    return Array.from(labelSet.values());
+  }, [issues, labelsData]);
+
+  // Filter projects by label
+  const filteredProjects = useMemo(() => {
+    if (projectLabelFilter === 'all') return projects;
+    return projects.filter((project: any) => {
+      const projectIssues = issues.filter((issue: any) => issue.project?.id === project.id);
+      return projectIssues.some((issue: any) =>
+        issue.labels?.nodes?.some((label: any) => label.id === projectLabelFilter)
+      );
+    });
+  }, [projects, issues, projectLabelFilter]);
 
   const kpis = useMemo(() => {
     const projectsByState = projects.reduce((acc: any, p: any) => {
@@ -200,12 +233,33 @@ export const Overview = () => {
       {/* Projects Table */}
       <Card className="bg-card border-border/50 shadow-card">
         <CardHeader>
-          <CardTitle>Recent Projects</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Recent Projects</CardTitle>
+            <Select value={projectLabelFilter} onValueChange={setProjectLabelFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by label" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Labels</SelectItem>
+                {allLabels.map((label: any) => (
+                  <SelectItem key={label.id} value={label.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: label.color }}
+                      />
+                      {label.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
-          {projects.length > 0 ? (
+          {filteredProjects.length > 0 ? (
             <div className="space-y-3">
-              {projects.slice(0, 10).map((project: any) => (
+              {filteredProjects.slice(0, 10).map((project: any) => (
                 <div
                   key={project.id}
                   className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"

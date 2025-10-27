@@ -49,21 +49,6 @@ export const GET_TEAM_PROJECTS = gql`
             name
             avatarUrl
           }
-          projectMilestones(first: 200) {
-            nodes {
-              id
-              name
-              targetDate
-              sortOrder
-            }
-          }
-          projectLabels {
-            nodes {
-              id
-              name
-              color
-            }
-          }
         }
       }
     }
@@ -128,7 +113,8 @@ export const GET_PROJECT_MILESTONES = gql`
   query GetProjectMilestones($projectId: String!) {
     project(id: $projectId) {
       id
-      projectMilestones {
+      name
+      projectMilestones(first: 200) {
         nodes {
           id
           name
@@ -136,6 +122,18 @@ export const GET_PROJECT_MILESTONES = gql`
           targetDate
           sortOrder
         }
+      }
+    }
+  }
+`;
+
+export const GET_ALL_LABELS = gql`
+  query GetAllLabels {
+    issueLabels(first: 100) {
+      nodes {
+        id
+        name
+        color
       }
     }
   }

@@ -1,7 +1,8 @@
 import { useQuery as useApolloQuery } from '@apollo/client';
 import { useLinear } from '@/contexts/LinearContext';
-import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES, GET_PROJECT_MILESTONES } from '@/lib/linear-queries';
+import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES, GET_PROJECT_MILESTONES, GET_ALL_LABELS } from '@/lib/linear-queries';
 import { useState, useMemo, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,7 @@ export const ProjectsView = () => {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [labelFilter, setLabelFilter] = useState<string>('all');
   
-  const { data: projectsData, loading: projectsLoading } = useApolloQuery(GET_TEAM_PROJECTS, {
+  const { data: projectsData, loading: projectsLoading, error: projectsError } = useApolloQuery(GET_TEAM_PROJECTS, {
     variables: { teamId: selectedTeamId },
     skip: !selectedTeamId,
   });
@@ -25,35 +26,59 @@ export const ProjectsView = () => {
     skip: !selectedTeamId,
   });
 
-  const { data: milestonesData } = useApolloQuery(GET_PROJECT_MILESTONES, {
+  const { data: labelsData } = useApolloQuery(GET_ALL_LABELS);
+
+  const { data: milestonesData, error: milestonesError } = useApolloQuery(GET_PROJECT_MILESTONES, {
     variables: { projectId: selectedProject ?? '' },
     skip: !selectedProject,
   });
+
+  // Show GraphQL errors
+  useEffect(() => {
+    if (projectsError) {
+      toast.error(`Failed to load projects: ${projectsError.message}`);
+    }
+  }, [projectsError]);
+
+  useEffect(() => {
+    if (milestonesError) {
+      toast.error(`Failed to load milestones: ${milestonesError.message}`);
+    }
+  }, [milestonesError]);
 
   const projects = projectsData?.team?.projects?.nodes || [];
   const issues = issuesData?.team?.issues?.nodes || [];
   const milestones = milestonesData?.project?.projectMilestones?.nodes || [];
 
-  // Get all unique labels from projects
+  // Get all unique labels from issues
   const allLabels = useMemo(() => {
     const labelSet = new Map();
-    projects.forEach((project: any) => {
-      project.projectLabels?.nodes?.forEach((label: any) => {
+    issues.forEach((issue: any) => {
+      issue.labels?.nodes?.forEach((label: any) => {
         if (!labelSet.has(label.id)) {
           labelSet.set(label.id, label);
         }
       });
     });
+    // Also add from labelsData if available
+    labelsData?.issueLabels?.nodes?.forEach((label: any) => {
+      if (!labelSet.has(label.id)) {
+        labelSet.set(label.id, label);
+      }
+    });
     return Array.from(labelSet.values());
-  }, [projects]);
+  }, [issues, labelsData]);
 
-  // Filter projects by label
+  // Filter projects by label (checking issues within projects)
   const filteredProjects = useMemo(() => {
     if (labelFilter === 'all') return projects;
-    return projects.filter((project: any) => 
-      project.projectLabels?.nodes?.some((label: any) => label.id === labelFilter)
-    );
-  }, [projects, labelFilter]);
+    return projects.filter((project: any) => {
+      const projectIssues = issues.filter((issue: any) => issue.project?.id === project.id);
+      return projectIssues.some((issue: any) =>
+        issue.labels?.nodes?.some((label: any) => label.id === labelFilter)
+      );
+    });
+  }, [projects, issues, labelFilter]);
 
   // Auto-select first project
   useEffect(() => {
