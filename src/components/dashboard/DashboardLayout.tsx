@@ -5,7 +5,7 @@ import { useLinear } from '@/contexts/LinearContext';
 import { Overview } from './Overview';
 import { TeamView } from './TeamView';
 import { IssuesView } from './LabelsView';
-import { ProjectsView } from './ProjectsView';
+import { ProjectsViewEnhanced } from './ProjectsViewEnhanced';
 import { PeopleView } from './PeopleView';
 import { ReportsView } from './ReportsView';
 import { BenchmarkView } from './BenchmarkView';
@@ -30,7 +30,7 @@ interface DashboardLayoutProps {
 const navItems = [
   { id: 'overview', label: 'Overview', icon: Home, component: Overview },
   { id: 'team', label: 'Team', icon: Users, component: TeamView },
-  { id: 'projects', label: 'Projects', icon: Folder, component: ProjectsView },
+  { id: 'projects', label: 'Projects', icon: Folder, component: ProjectsViewEnhanced },
   { id: 'issues', label: 'Issues', icon: Tag, component: IssuesView },
   { id: 'people', label: 'People', icon: Users, component: PeopleView },
   { id: 'reports', label: 'Reports', icon: FileText, component: ReportsView },

@@ -1,14 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, Palette, Key, Bell } from 'lucide-react';
+import { Settings, Palette, Key, Bell, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useLinear } from '@/contexts/LinearContext';
 import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
 
 export const SettingsView = () => {
   const { disconnect } = useLinear();
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    toast.success(`${newTheme === 'dark' ? 'Dark' : 'Light'} mode enabled`);
+  };
 
   const handleDisconnect = () => {
     disconnect();
@@ -55,6 +73,41 @@ export const SettingsView = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Dark/Light Mode Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/30">
+            <div className="flex items-center gap-3">
+              {theme === 'dark' ? (
+                <Moon className="w-5 h-5 text-primary" />
+              ) : (
+                <Sun className="w-5 h-5 text-primary" />
+              )}
+              <div>
+                <p className="font-medium">Theme Mode</p>
+                <p className="text-sm text-muted-foreground">
+                  Currently using {theme === 'dark' ? 'dark' : 'light'} mode
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTheme}
+              className="gap-2"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-4 h-4" />
+                  Switch to Light
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4" />
+                  Switch to Dark
+                </>
+              )}
+            </Button>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="accent-color">Accent Color</Label>
             <div className="flex gap-2">

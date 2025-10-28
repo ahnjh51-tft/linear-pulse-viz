@@ -62,6 +62,57 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  .light {
+    /* Light mode */
+    --background: 0 0% 100%;
+    --foreground: 220 27% 5%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 220 27% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 27% 5%;
+
+    --primary: 261 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 92%;
+    --secondary-foreground: 220 27% 5%;
+
+    --muted: 220 20% 92%;
+    --muted-foreground: 218 11% 45%;
+
+    --accent: 261 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 20% 85%;
+    --input: 220 20% 85%;
+    --ring: 261 80% 60%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 27% 5%;
+    --sidebar-primary: 261 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 92%;
+    --sidebar-accent-foreground: 220 27% 5%;
+    --sidebar-border: 220 20% 85%;
+    --sidebar-ring: 261 80% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(261 80% 60%), hsl(261 90% 70%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 96%));
+    --shadow-elegant: 0 10px 30px -10px hsl(261 80% 60% / 0.2);
+    --shadow-card: 0 4px 12px hsl(220 20% 20% / 0.1);
+  }
+
   .dark {
     /* Same as root for dark-first design */
     --background: 220 27% 5%;
