@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Folder, CheckCircle2, AlertCircle, Users, Activity } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { KPICardSkeleton, ChartSkeleton, TableRowSkeleton } from '@/components/ui/loading-skeleton';
 import {
   BarChart,
   Bar,
@@ -129,105 +130,125 @@ export const Overview = () => {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard
-          title="Total Projects"
-          value={kpis.totalProjects}
-          icon={<Folder className="w-5 h-5" />}
-          loading={loading}
-        />
-        <KPICard
-          title="Active Projects"
-          value={kpis.activeProjects}
-          icon={<Activity className="w-5 h-5" />}
-          loading={loading}
-        />
-        <KPICard
-          title="Progress"
-          value={`${kpis.progressPercent}%`}
-          icon={<CheckCircle2 className="w-5 h-5" />}
-          loading={loading}
-          change={{ value: 12, isPositive: true }}
-        />
-        <KPICard
-          title="Total Issues"
-          value={kpis.totalIssues}
-          icon={<Users className="w-5 h-5" />}
-          loading={loading}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" role="region" aria-label="Key Performance Indicators">
+        {loading ? (
+          <>
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+          </>
+        ) : (
+          <>
+            <KPICard
+              title="Total Projects"
+              value={kpis.totalProjects}
+              icon={<Folder className="w-5 h-5" aria-hidden="true" />}
+              loading={loading}
+            />
+            <KPICard
+              title="Active Projects"
+              value={kpis.activeProjects}
+              icon={<Activity className="w-5 h-5" aria-hidden="true" />}
+              loading={loading}
+            />
+            <KPICard
+              title="Progress"
+              value={`${kpis.progressPercent}%`}
+              icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
+              loading={loading}
+              change={{ value: 12, isPositive: true }}
+            />
+            <KPICard
+              title="Total Issues"
+              value={kpis.totalIssues}
+              icon={<Users className="w-5 h-5" aria-hidden="true" />}
+              loading={loading}
+            />
+          </>
+        )}
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-card border-border/50 shadow-card">
-          <CardHeader>
-            <CardTitle>Project Status Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {projectChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={projectChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No projects found
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" role="region" aria-label="Status Distribution Charts">
+        {loading ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            <Card className="bg-card border-border/50 shadow-card">
+              <CardHeader>
+                <CardTitle>Project Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {projectChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={projectChartData} role="img" aria-label="Bar chart showing project status distribution">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                      <YAxis stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                    No projects found
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        <Card className="bg-card border-border/50 shadow-card">
-          <CardHeader>
-            <CardTitle>Issue Status Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {issueChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={issueChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {issueChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No issues found
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <Card className="bg-card border-border/50 shadow-card">
+              <CardHeader>
+                <CardTitle>Issue Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {issueChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart role="img" aria-label="Pie chart showing issue status distribution">
+                      <Pie
+                        data={issueChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {issueChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                    No issues found
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Projects Table */}
@@ -257,7 +278,13 @@ export const Overview = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {filteredProjects.length > 0 ? (
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <TableRowSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredProjects.length > 0 ? (
             <div className="space-y-3">
               {filteredProjects.slice(0, 10).map((project: any) => (
                 <div

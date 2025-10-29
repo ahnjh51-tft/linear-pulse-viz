@@ -22,6 +22,7 @@ import {
   Folder,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 interface DashboardLayoutProps {
   children?: ReactNode;
@@ -45,8 +46,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip to main content for accessibility */}
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
+
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg" role="banner">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -87,9 +93,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </header>
 
       {/* Navigation */}
-      <nav className="border-b border-border bg-card/30">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center gap-1 overflow-x-auto">
+      <nav className="border-b border-border bg-card/30" role="navigation" aria-label="Main navigation">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -99,14 +105,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   size="sm"
                   onClick={() => setActiveView(item.id)}
                   className={cn(
-                    'rounded-none border-b-2 border-transparent px-4 py-3 transition-smooth',
+                    'rounded-none border-b-2 border-transparent px-3 sm:px-4 py-3 transition-smooth snap-start shrink-0',
                     activeView === item.id
                       ? 'border-primary text-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:border-border'
                   )}
+                  aria-label={`Navigate to ${item.label}`}
+                  aria-current={activeView === item.id ? 'page' : undefined}
                 >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
+                  <Icon className="h-4 w-4 mr-2" aria-hidden="true" />
+                  <span className="hidden sm:inline">{item.label}</span>
+                  <span className="sm:hidden">{item.label.slice(0, 1)}</span>
                 </Button>
               );
             })}
@@ -115,8 +124,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
-        <ActiveComponent />
+      <main 
+        id="main-content" 
+        className="container mx-auto px-4 sm:px-6 py-6 sm:py-8" 
+        role="main"
+        tabIndex={-1}
+      >
+        <ErrorBoundary>
+          <ActiveComponent />
+        </ErrorBoundary>
       </main>
     </div>
   );
