@@ -53,19 +53,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg" role="banner">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between py-3 sm:py-4">
+            <div className="flex items-center gap-3 sm:gap-6">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <BarChart3 className="w-5 h-5 text-primary" />
                 </div>
-                <h1 className="text-xl font-bold">Linear KPI</h1>
+                <h1 className="text-lg sm:text-xl font-bold">Linear KPI</h1>
               </div>
               <TeamSelector />
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button
                 variant="ghost"
                 size="sm"
@@ -74,18 +74,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   'text-muted-foreground hover:text-foreground',
                   activeView === 'settings' && 'text-foreground'
                 )}
+                aria-label="Settings"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
+                <Settings className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Settings</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={disconnect}
                 className="text-muted-foreground hover:text-destructive"
+                aria-label="Disconnect from Linear"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Disconnect
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Disconnect</span>
               </Button>
             </div>
           </div>
@@ -126,7 +128,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Main Content */}
       <main 
         id="main-content" 
-        className="container mx-auto px-4 sm:px-6 py-6 sm:py-8" 
+        className="container mx-auto section-spacing" 
         role="main"
         tabIndex={-1}
       >

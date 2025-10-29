@@ -168,14 +168,34 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'rlig' 1, 'calt' 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-    letter-spacing: -0.02em;
+  /* Typography Scale */
+  h1 {
+    @apply text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl lg:text-2xl font-semibold;
+  }
+
+  h5 {
+    @apply text-base sm:text-lg lg:text-xl font-medium;
+  }
+
+  h6 {
+    @apply text-sm sm:text-base lg:text-lg font-medium;
   }
 
   /* Improved focus indicators for accessibility */
@@ -230,5 +250,18 @@ All colors MUST be HSL.
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Standard spacing utilities */
+  .section-spacing {
+    @apply py-6 sm:py-8 md:py-12;
+  }
+
+  .card-spacing {
+    @apply p-4 sm:p-6;
+  }
+
+  .content-spacing {
+    @apply space-y-4 sm:space-y-6 md:space-y-8;
   }
 }

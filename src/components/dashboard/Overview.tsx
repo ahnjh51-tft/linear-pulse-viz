@@ -130,49 +130,54 @@ export const Overview = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
+    <div className="content-spacing animate-fade-in">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" role="region" aria-label="Key Performance Indicators">
-        {loading ? (
-          <>
-            <KPICardSkeleton />
-            <KPICardSkeleton />
-            <KPICardSkeleton />
-            <KPICardSkeleton />
-          </>
-        ) : (
-          <>
-            <KPICard
-              title="Total Projects"
-              value={kpis.totalProjects}
-              icon={<Folder className="w-5 h-5" aria-hidden="true" />}
-              loading={loading}
-            />
-            <KPICard
-              title="Active Projects"
-              value={kpis.activeProjects}
-              icon={<Activity className="w-5 h-5" aria-hidden="true" />}
-              loading={loading}
-            />
-            <KPICard
-              title="Progress"
-              value={`${kpis.progressPercent}%`}
-              icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
-              loading={loading}
-              change={{ value: 12, isPositive: true }}
-            />
-            <KPICard
-              title="Total Issues"
-              value={kpis.totalIssues}
-              icon={<Users className="w-5 h-5" aria-hidden="true" />}
-              loading={loading}
-            />
-          </>
-        )}
-      </div>
+      <section>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6" role="region" aria-label="Key Performance Indicators">
+          {loading ? (
+            <>
+              <KPICardSkeleton />
+              <KPICardSkeleton />
+              <KPICardSkeleton />
+              <KPICardSkeleton />
+            </>
+          ) : (
+            <>
+              <KPICard
+                title="Total Projects"
+                value={kpis.totalProjects}
+                variant="info"
+                icon={<Folder className="w-5 h-5" aria-hidden="true" />}
+                loading={loading}
+              />
+              <KPICard
+                title="Active Projects"
+                value={kpis.activeProjects}
+                variant="default"
+                icon={<Activity className="w-5 h-5" aria-hidden="true" />}
+                loading={loading}
+              />
+              <KPICard
+                title="Progress"
+                value={`${kpis.progressPercent}%`}
+                variant="success"
+                icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
+                loading={loading}
+                change={{ value: 12, isPositive: true }}
+              />
+              <KPICard
+                title="Total Issues"
+                value={kpis.totalIssues}
+                icon={<Users className="w-5 h-5" aria-hidden="true" />}
+                loading={loading}
+              />
+            </>
+          )}
+        </div>
+      </section>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" role="region" aria-label="Status Distribution Charts">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6" role="region" aria-label="Status Distribution Charts">
         {loading ? (
           <>
             <ChartSkeleton />
@@ -180,10 +185,8 @@ export const Overview = () => {
           </>
         ) : (
           <>
-            <Card className="bg-card border-border/50 shadow-card">
-              <CardHeader>
-                <CardTitle>Project Status Distribution</CardTitle>
-              </CardHeader>
+            <Card className="card-spacing bg-card border-border/50 shadow-card">
+              <h3 className="mb-4">Project Status Distribution</h3>
               <CardContent>
                 {projectChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
@@ -209,11 +212,9 @@ export const Overview = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border/50 shadow-card">
-              <CardHeader>
-                <CardTitle>Issue Status Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <Card className="card-spacing bg-card border-border/50 shadow-card">
+              <h3 className="mb-4">Issue Status Distribution</h3>
+              <CardContent className="p-0">
                 {issueChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart role="img" aria-label="Pie chart showing issue status distribution">
@@ -249,52 +250,50 @@ export const Overview = () => {
             </Card>
           </>
         )}
-      </div>
+      </section>
 
       {/* Projects Table */}
-      <Card className="bg-card border-border/50 shadow-card">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Recent Projects</CardTitle>
-            <Select value={projectLabelFilter} onValueChange={setProjectLabelFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by label" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Labels</SelectItem>
-                {allLabels.map((label: any) => (
-                  <SelectItem key={label.id} value={label.id}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: label.color }}
-                      />
-                      {label.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
+      <Card className="card-spacing bg-card border-border/50 shadow-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h3>Recent Projects</h3>
+          <Select value={projectLabelFilter} onValueChange={setProjectLabelFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by label" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Labels</SelectItem>
+              {allLabels.map((label: any) => (
+                <SelectItem key={label.id} value={label.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: label.color }}
+                    />
+                    {label.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="pt-2">
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <TableRowSkeleton key={i} />
               ))}
             </div>
           ) : filteredProjects.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {filteredProjects.slice(0, 10).map((project: any) => (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth gap-3 sm:gap-4"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
                       className={cn(
-                        'w-2 h-2 rounded-full',
+                        'w-2 h-2 rounded-full shrink-0',
                         project.state?.toLowerCase() === 'completed' && 'bg-success',
                         project.state?.toLowerCase() === 'started' && 'bg-primary',
                         project.state?.toLowerCase() === 'planned' && 'bg-muted-foreground',
@@ -302,15 +301,15 @@ export const Overview = () => {
                         project.state?.toLowerCase() === 'canceled' && 'bg-destructive'
                       )}
                     />
-                    <div>
-                      <p className="font-medium">{project.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{project.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
                         {project.state.charAt(0).toUpperCase() + project.state.slice(1)}
                         {project.lead && ` • ${project.lead.name}`}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right shrink-0">
                     {project.progress !== null && (
                       <p className="text-sm font-medium">{Math.round(project.progress * 100)}%</p>
                     )}
@@ -328,7 +327,7 @@ export const Overview = () => {
               No projects found for this team
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
