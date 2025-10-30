@@ -4,7 +4,8 @@ import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES, GET_ALL_LABELS } from '@/lib/linear
 import { KPICard } from './KPICard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Folder, CheckCircle2, AlertCircle, Users, Activity } from 'lucide-react';
+import { Folder, CheckCircle2, AlertCircle, Users, Activity, ArrowUpRight, Inbox } from 'lucide-react';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { KPICardSkeleton, ChartSkeleton, TableRowSkeleton } from '@/components/ui/loading-skeleton';
@@ -185,7 +186,7 @@ export const Overview = () => {
           </>
         ) : (
           <>
-            <Card className="card-spacing bg-card border-border/50 shadow-card">
+            <Card className="card-spacing bg-card border-border/50 shadow-card hover:shadow-lg transition-all duration-200">
               <h3 className="mb-4">Project Status Distribution</h3>
               <CardContent>
                 {projectChartData.length > 0 ? (
@@ -212,7 +213,7 @@ export const Overview = () => {
               </CardContent>
             </Card>
 
-            <Card className="card-spacing bg-card border-border/50 shadow-card">
+            <Card className="card-spacing bg-card border-border/50 shadow-card hover:shadow-lg transition-all duration-200">
               <h3 className="mb-4">Issue Status Distribution</h3>
               <CardContent className="p-0">
                 {issueChartData.length > 0 ? (
@@ -253,7 +254,7 @@ export const Overview = () => {
       </section>
 
       {/* Projects Table */}
-      <Card className="card-spacing bg-card border-border/50 shadow-card">
+      <Card className="card-spacing bg-card border-border/50 shadow-card hover:shadow-lg transition-all duration-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h3>Recent Projects</h3>
           <Select value={projectLabelFilter} onValueChange={setProjectLabelFilter}>
@@ -285,10 +286,11 @@ export const Overview = () => {
             </div>
           ) : filteredProjects.length > 0 ? (
             <div className="space-y-2">
-              {filteredProjects.slice(0, 10).map((project: any) => (
+              {filteredProjects.slice(0, 10).map((project: any, index) => (
                 <div
                   key={project.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth gap-3 sm:gap-4"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 hover:scale-[1.01] transition-all duration-200 gap-3 sm:gap-4 cursor-pointer group animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
@@ -302,14 +304,14 @@ export const Overview = () => {
                       )}
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{project.name}</p>
+                      <p className="font-medium truncate group-hover:text-primary transition-colors">{project.name}</p>
                       <p className="text-sm text-muted-foreground truncate">
                         {project.state.charAt(0).toUpperCase() + project.state.slice(1)}
                         {project.lead && ` • ${project.lead.name}`}
                       </p>
                     </div>
                   </div>
-                  <div className="text-left sm:text-right shrink-0">
+                  <div className="flex items-center gap-3 text-left sm:text-right shrink-0">
                     {project.progress !== null && (
                       <p className="text-sm font-medium">{Math.round(project.progress * 100)}%</p>
                     )}
@@ -318,14 +320,17 @@ export const Overview = () => {
                         Due {new Date(project.targetDate).toLocaleDateString()}
                       </p>
                     )}
+                    <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="py-12 text-center text-muted-foreground">
-              No projects found for this team
-            </div>
+            <EmptyState
+              icon={Inbox}
+              title="No projects found"
+              description="No projects found for the selected filters. Try adjusting your filters or select a different team."
+            />
           )}
         </div>
       </Card>

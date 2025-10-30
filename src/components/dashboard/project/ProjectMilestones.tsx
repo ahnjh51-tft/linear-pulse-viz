@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from 'lucide-react';
+import { Calendar, Target } from 'lucide-react';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 interface Milestone {
   id: string;
@@ -29,7 +30,7 @@ export const ProjectMilestones = ({ milestones, issues }: ProjectMilestonesProps
       <CardContent>
         {milestones.length > 0 ? (
           <div className="space-y-3">
-            {milestones.map((milestone) => {
+            {milestones.map((milestone, index) => {
               const milestoneIssues = issues.filter(i => i.milestone?.id === milestone.id);
               const completed = milestoneIssues.filter(i => i.state?.type === 'completed').length;
               const progress = milestoneIssues.length > 0 ? Math.round((completed / milestoneIssues.length) * 100) : 0;
@@ -37,7 +38,8 @@ export const ProjectMilestones = ({ milestones, issues }: ProjectMilestonesProps
               return (
                 <div
                   key={milestone.id}
-                  className="p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
+                  className="p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-pointer animate-fade-in"
+                  style={{ animationDelay: `${index * 75}ms` }}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -52,7 +54,7 @@ export const ProjectMilestones = ({ milestones, issues }: ProjectMilestonesProps
                       )}
                       <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary transition-all duration-300"
+                          className="h-full bg-primary transition-all duration-500"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -72,9 +74,11 @@ export const ProjectMilestones = ({ milestones, issues }: ProjectMilestonesProps
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            No milestones found
-          </div>
+          <EmptyState
+            icon={Target}
+            title="No milestones yet"
+            description="Create milestones to track your project's progress and deliverables."
+          />
         )}
       </CardContent>
     </Card>

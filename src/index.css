@@ -264,4 +264,13 @@ All colors MUST be HSL.
   .content-spacing {
     @apply space-y-4 sm:space-y-6 md:space-y-8;
   }
+
+  /* Interactive elements */
+  .interactive-card {
+    @apply transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer;
+  }
+
+  .interactive-item {
+    @apply transition-all duration-200 hover:bg-secondary/50 cursor-pointer;
+  }
 }
