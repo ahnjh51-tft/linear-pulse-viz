@@ -3,21 +3,23 @@ import { useLinear } from '@/contexts/LinearContext';
 import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES, GET_PROJECT_MILESTONES, GET_ALL_LABELS } from '@/lib/linear-queries';
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, Calendar, Users, Target, BarChart3, Download, Filter, TrendingUp, Clock, Activity } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { AlertCircle } from 'lucide-react';
 import { Breadcrumb } from './Breadcrumb';
 import { ProjectKPIGroup } from './ProjectKPIGroup';
-import { MilestoneGantt } from './MilestoneGantt';
 import { IssueAccordion } from './IssueAccordion';
-import { DateRangeFilter } from './DateRangeFilter';
 import { subMonths } from 'date-fns';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ProjectHeader } from './project/ProjectHeader';
+import { ProjectTimeline } from './project/ProjectTimeline';
+import { ProjectMilestones } from './project/ProjectMilestones';
+import { ProjectAnalytics } from './project/ProjectAnalytics';
+import { StatusFilter } from '@/components/shared/StatusFilter';
+import { AssigneeFilter } from '@/components/shared/AssigneeFilter';
+import { useProjectKPIs, useHealthStatus, useBurndownData, useThroughputData } from './project/useProjectData';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Filter, Users } from 'lucide-react';
 
 export const ProjectsViewEnhanced = () => {
   const { selectedTeamId } = useLinear();
@@ -110,108 +112,10 @@ export const ProjectsViewEnhanced = () => {
     return issues.filter((issue: any) => issue.project?.id === selectedProject);
   }, [issues, selectedProject]);
 
-  // Calculate project KPIs
-  const projectKPIs = useMemo(() => {
-    if (!activeProject) return [];
-
-    const totalIssues = projectIssues.length;
-    const completedIssues = projectIssues.filter(i => i.state?.type === 'completed').length;
-    const progress = totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
-    
-    const completedMilestones = milestones.filter((m: any) => {
-      const milestoneIssues = projectIssues.filter(i => i.milestone?.id === m.id);
-      const completed = milestoneIssues.filter(i => i.state?.type === 'completed').length;
-      return milestoneIssues.length > 0 && completed === milestoneIssues.length;
-    }).length;
-    
-    const onTimeRate = milestones.length > 0 ? Math.round((completedMilestones / milestones.length) * 100) : 0;
-    
-    const blockedIssues = projectIssues.filter(i => 
-      i.labels?.nodes?.some((l: any) => l.name.toLowerCase().includes('blocked'))
-    ).length;
-    const blockedPercent = totalIssues > 0 ? Math.round((blockedIssues / totalIssues) * 100) : 0;
-
-    return [
-      {
-        id: 'progress',
-        label: 'Progress',
-        value: `${progress}%`,
-        icon: <Activity className="w-4 h-4" />,
-        trend: { value: 12, isPositive: true },
-      },
-      {
-        id: 'on-time',
-        label: 'On-Time Delivery',
-        value: `${onTimeRate}%`,
-        icon: <Target className="w-4 h-4" />,
-        trend: { value: 5, isPositive: true },
-      },
-      {
-        id: 'blockers',
-        label: 'Blockers',
-        value: `${blockedPercent}%`,
-        icon: <AlertCircle className="w-4 h-4" />,
-        trend: { value: 3, isPositive: false },
-      },
-      {
-        id: 'milestones',
-        label: 'Milestones',
-        value: milestones.length,
-        icon: <Target className="w-4 h-4" />,
-      },
-      {
-        id: 'issues',
-        label: 'Total Issues',
-        value: totalIssues,
-        icon: <BarChart3 className="w-4 h-4" />,
-      },
-    ];
-  }, [activeProject, projectIssues, milestones]);
-
-  // Determine health status
-  const healthStatus = useMemo(() => {
-    const totalIssues = projectIssues.length;
-    const completedIssues = projectIssues.filter(i => i.state?.type === 'completed').length;
-    const progress = totalIssues > 0 ? completedIssues / totalIssues : 0;
-
-    if (progress >= 0.8) return 'on-track';
-    if (progress >= 0.5) return 'at-risk';
-    return 'off-track';
-  }, [projectIssues]);
-
-  // Burndown chart data
-  const burndownData = useMemo(() => {
-    const weeks = 12;
-    const data = [];
-    const totalIssues = projectIssues.length;
-    
-    for (let i = 0; i < weeks; i++) {
-      const completed = Math.min(
-        Math.round((i / weeks) * totalIssues * 0.85 + Math.random() * totalIssues * 0.15),
-        totalIssues
-      );
-      data.push({
-        week: `W${i + 1}`,
-        remaining: totalIssues - completed,
-        ideal: Math.round(totalIssues - (i / weeks) * totalIssues),
-      });
-    }
-    return data;
-  }, [projectIssues]);
-
-  // Throughput chart data
-  const throughputData = useMemo(() => {
-    const weeks = 8;
-    const data = [];
-    
-    for (let i = 0; i < weeks; i++) {
-      data.push({
-        week: `W${i + 1}`,
-        completed: Math.floor(Math.random() * 15) + 5,
-      });
-    }
-    return data;
-  }, []);
+  const projectKPIs = useProjectKPIs(projectIssues, milestones);
+  const healthStatus = useHealthStatus(projectIssues);
+  const burndownData = useBurndownData(projectIssues);
+  const throughputData = useThroughputData();
 
   // Filter issues based on all filters
   const filteredIssues = useMemo(() => {
@@ -282,8 +186,7 @@ export const ProjectsViewEnhanced = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Breadcrumb */}
+    <div className="content-spacing animate-fade-in">
       <Breadcrumb
         items={[
           { label: 'Projects' },
@@ -291,53 +194,18 @@ export const ProjectsViewEnhanced = () => {
         ]}
       />
 
-      {/* Header with filters */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <Select value={selectedProject || undefined} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-full max-w-md bg-card border-border/50">
-              <SelectValue placeholder="Select a project" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-50">
-              {filteredProjects.map((project: any) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={labelFilter} onValueChange={setLabelFilter}>
-            <SelectTrigger className="w-48 bg-card border-border/50">
-              <SelectValue placeholder="Filter by label" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-50">
-              <SelectItem value="all">All Labels</SelectItem>
-              {allLabels.map((label: any) => (
-                <SelectItem key={label.id} value={label.id}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: label.color }}
-                    />
-                    {label.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <ProjectHeader
+        selectedProject={selectedProject}
+        projects={filteredProjects}
+        onProjectChange={setSelectedProject}
+        labelFilter={labelFilter}
+        labels={allLabels}
+        onLabelChange={setLabelFilter}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        onExport={handleExport}
+      />
 
-        <div className="flex items-center gap-3">
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      {/* Project KPIs */}
       {activeProject && (
         <ProjectKPIGroup
           kpis={projectKPIs}
@@ -345,7 +213,6 @@ export const ProjectsViewEnhanced = () => {
         />
       )}
 
-      {/* Project Detail Tabs */}
       {activeProject && (
         <Tabs defaultValue="timeline" className="space-y-6">
           <TabsList className="bg-muted">
@@ -356,103 +223,24 @@ export const ProjectsViewEnhanced = () => {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          {/* Timeline Tab - Gantt View */}
-          <TabsContent value="timeline" className="space-y-6">
-            <Card className="bg-card border-border/50 shadow-card">
-              <CardHeader>
-                <CardTitle>Milestone Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MilestoneGantt
-                  milestones={milestones.map((m: any) => ({
-                    ...m,
-                    issues: projectIssues.filter(i => i.milestone?.id === m.id),
-                  }))}
-                  onMilestoneClick={(milestone) => {
-                    setMilestoneFilter(milestone.id);
-                    toast.info(`Filtered to ${milestone.name}`);
-                  }}
-                />
-              </CardContent>
-            </Card>
+          <TabsContent value="timeline">
+            <ProjectTimeline
+              milestones={milestones}
+              issues={projectIssues}
+              onMilestoneClick={(milestone) => {
+                setMilestoneFilter(milestone.id);
+                toast.info(`Filtered to ${milestone.name}`);
+              }}
+            />
           </TabsContent>
 
-          {/* Milestones Tab */}
-          <TabsContent value="milestones" className="space-y-4">
-            <Card className="bg-card border-border/50 shadow-card">
-              <CardHeader>
-                <CardTitle>Milestones ({milestones.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {milestones.length > 0 ? (
-                  <div className="space-y-3">
-                    {milestones.map((milestone: any) => {
-                      const milestoneIssues = projectIssues.filter(i => i.milestone?.id === milestone.id);
-                      const completed = milestoneIssues.filter(i => i.state?.type === 'completed').length;
-                      const progress = milestoneIssues.length > 0 ? Math.round((completed / milestoneIssues.length) * 100) : 0;
-
-                      return (
-                        <div
-                          key={milestone.id}
-                          className="p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-smooth"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <p className="font-medium">{milestone.name}</p>
-                                <Badge variant="secondary">
-                                  {completed}/{milestoneIssues.length} issues
-                                </Badge>
-                              </div>
-                              {milestone.description && (
-                                <p className="text-sm text-muted-foreground mb-3">{milestone.description}</p>
-                              )}
-                              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-primary transition-all duration-300"
-                                  style={{ width: `${progress}%` }}
-                                />
-                              </div>
-                            </div>
-                            <div className="text-right ml-4">
-                              {milestone.targetDate && (
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Calendar className="w-4 h-4" />
-                                  {new Date(milestone.targetDate).toLocaleDateString()}
-                                </div>
-                              )}
-                              <p className="text-2xl font-bold mt-2">{progress}%</p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No milestones found
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="milestones">
+            <ProjectMilestones milestones={milestones} issues={projectIssues} />
           </TabsContent>
 
-          {/* Issues Tab */}
           <TabsContent value="issues" className="space-y-4">
-            {/* Issue Filters */}
             <div className="flex items-center gap-3 flex-wrap">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48 bg-card border-border/50">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border z-50">
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="backlog">Backlog</SelectItem>
-                  <SelectItem value="started">Started</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="canceled">Canceled</SelectItem>
-                </SelectContent>
-              </Select>
+              <StatusFilter value={statusFilter} onChange={setStatusFilter} />
 
               <Select value={milestoneFilter} onValueChange={setMilestoneFilter}>
                 <SelectTrigger className="w-48 bg-card border-border/50">
@@ -466,17 +254,11 @@ export const ProjectsViewEnhanced = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                <SelectTrigger className="w-48 bg-card border-border/50">
-                  <SelectValue placeholder="Assignee" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border z-50">
-                  <SelectItem value="all">All Assignees</SelectItem>
-                  {assignees.map((a: any) => (
-                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AssigneeFilter
+                value={assigneeFilter}
+                onChange={setAssigneeFilter}
+                assignees={assignees}
+              />
 
               <Button
                 variant="ghost"
@@ -493,12 +275,10 @@ export const ProjectsViewEnhanced = () => {
               </Button>
             </div>
 
-            {/* Issues Accordion */}
             <IssueAccordion groups={issueGroups} />
           </TabsContent>
 
-          {/* People Tab */}
-          <TabsContent value="people" className="space-y-4">
+          <TabsContent value="people">
             <Card className="bg-card border-border/50 shadow-card">
               <CardHeader>
                 <CardTitle>Team Members</CardTitle>
@@ -514,7 +294,7 @@ export const ProjectsViewEnhanced = () => {
                           className="w-10 h-10 rounded-full"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <Users className="w-5 h-5 text-primary" />
                         </div>
                       )}
@@ -538,7 +318,7 @@ export const ProjectsViewEnhanced = () => {
                             className="w-10 h-10 rounded-full"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <Users className="w-5 h-5 text-primary" />
                           </div>
                         )}
@@ -561,63 +341,11 @@ export const ProjectsViewEnhanced = () => {
             </Card>
           </TabsContent>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Burndown Chart */}
-              <Card className="bg-card border-border/50 shadow-card">
-                <CardHeader>
-                  <CardTitle>Burndown Chart</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{
-                      remaining: { label: 'Remaining', color: 'hsl(var(--primary))' },
-                      ideal: { label: 'Ideal', color: 'hsl(var(--muted-foreground))' },
-                    }}
-                    className="h-[300px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={burndownData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Legend />
-                        <Line type="monotone" dataKey="remaining" stroke="hsl(var(--primary))" strokeWidth={2} />
-                        <Line type="monotone" dataKey="ideal" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="5 5" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              {/* Throughput Chart */}
-              <Card className="bg-card border-border/50 shadow-card">
-                <CardHeader>
-                  <CardTitle>Weekly Throughput</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{
-                      completed: { label: 'Completed', color: 'hsl(var(--success))' },
-                    }}
-                    className="h-[300px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={throughputData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Legend />
-                        <Bar dataKey="completed" fill="hsl(var(--success))" radius={[8, 8, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="analytics">
+            <ProjectAnalytics
+              burndownData={burndownData}
+              throughputData={throughputData}
+            />
           </TabsContent>
         </Tabs>
       )}

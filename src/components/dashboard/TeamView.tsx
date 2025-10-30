@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { KPICard } from './KPICard';
+import { chartConfig } from '@/lib/chart-config';
 
 export const TeamView = () => {
   const { selectedTeamId } = useLinear();
@@ -123,17 +124,11 @@ export const TeamView = () => {
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={teamMetrics.workloadByPerson}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar dataKey="count" fill="hsl(var(--primary))" name="Issues" radius={[8, 8, 0, 0]} />
+              <CartesianGrid {...chartConfig.styles.grid} />
+              <XAxis dataKey="name" {...chartConfig.styles.axis} />
+              <YAxis {...chartConfig.styles.axis} />
+              <Tooltip {...chartConfig.styles.tooltip} />
+              <Bar dataKey="count" fill={chartConfig.colors.primary} name="Issues" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
