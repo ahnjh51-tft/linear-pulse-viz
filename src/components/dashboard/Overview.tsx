@@ -215,6 +215,7 @@ export const Overview = () => {
                           color: 'hsl(var(--popover-foreground))',
                         }}
                         labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                        itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
                       />
                       <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
@@ -255,6 +256,7 @@ export const Overview = () => {
                           color: 'hsl(var(--popover-foreground))',
                         }}
                         labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                        itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
