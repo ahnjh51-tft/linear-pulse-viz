@@ -18,6 +18,7 @@ import { GET_TEAMS } from '@/lib/linear-queries';
 import { useLinear } from '@/contexts/LinearContext';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { parseEmoji } from '@/lib/emoji-utils';
 
 export const TeamSelector = () => {
   const [open, setOpen] = useState(false);
@@ -65,7 +66,7 @@ export const TeamSelector = () => {
                     )}
                   />
                   <span className="flex items-center gap-2">
-                    {team.icon && <span className="text-base">{team.icon}</span>}
+                    {team.icon && <span className="text-base">{parseEmoji(team.icon)}</span>}
                     {team.name}
                   </span>
                 </CommandItem>
