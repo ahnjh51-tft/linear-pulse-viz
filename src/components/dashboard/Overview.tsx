@@ -212,7 +212,9 @@ export const Overview = () => {
                           backgroundColor: 'hsl(var(--popover))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px',
+                          color: 'hsl(var(--popover-foreground))',
                         }}
+                        labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
                       />
                       <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
@@ -250,7 +252,9 @@ export const Overview = () => {
                           backgroundColor: 'hsl(var(--popover))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px',
+                          color: 'hsl(var(--popover-foreground))',
                         }}
+                        labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
