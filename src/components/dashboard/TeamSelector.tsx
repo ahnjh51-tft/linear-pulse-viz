@@ -65,7 +65,7 @@ export const TeamSelector = () => {
                     )}
                   />
                   <span className="flex items-center gap-2">
-                    {team.icon && <span>{team.icon}</span>}
+                    {team.icon && <span className="text-base">{team.icon}</span>}
                     {team.name}
                   </span>
                 </CommandItem>
