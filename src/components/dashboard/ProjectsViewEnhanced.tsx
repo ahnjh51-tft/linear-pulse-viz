@@ -4,7 +4,10 @@ import { GET_TEAM_PROJECTS, GET_TEAM_ISSUES, GET_PROJECT_MILESTONES, GET_ALL_LAB
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Download } from 'lucide-react';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { exportToCSV, exportToJSON } from '@/lib/export-utils';
+import { BulkActions } from '@/components/shared/BulkActions';
 import { Breadcrumb } from './Breadcrumb';
 import { ProjectKPIGroup } from './ProjectKPIGroup';
 import { IssueAccordion } from './IssueAccordion';
@@ -32,6 +35,26 @@ export const ProjectsViewEnhanced = () => {
     from: subMonths(new Date(), 3),
     to: new Date(),
   });
+  const [selectedIssues, setSelectedIssues] = useState<Set<string>>(new Set());
+
+  useKeyboardShortcuts([
+    {
+      key: 'e',
+      ctrl: true,
+      action: () => handleExport(),
+      description: 'Export data',
+    },
+    {
+      key: 'f',
+      ctrl: true,
+      action: () => {
+        setStatusFilter('all');
+        setMilestoneFilter('all');
+        setAssigneeFilter('all');
+      },
+      description: 'Clear filters',
+    },
+  ]);
   
   const { data: projectsData, loading: projectsLoading, error: projectsError } = useApolloQuery(GET_TEAM_PROJECTS, {
     variables: { teamId: selectedTeamId },
@@ -167,7 +190,32 @@ export const ProjectsViewEnhanced = () => {
   }, [projectIssues]);
 
   const handleExport = () => {
-    toast.success('Export functionality coming soon');
+    if (filteredIssues.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+    
+    const exportData = filteredIssues.map((issue: any) => ({
+      title: issue.title,
+      state: issue.state?.name,
+      assignee: issue.assignee?.name || 'Unassigned',
+      milestone: issue.milestone?.name || 'No milestone',
+      priority: issue.priority,
+      createdAt: issue.createdAt,
+    }));
+
+    exportToCSV(exportData, `project-${activeProject?.name || 'export'}`);
+    toast.success('Data exported successfully');
+  };
+
+  const handleBulkMarkComplete = () => {
+    toast.info(`Marking ${selectedIssues.size} issues as complete`);
+    setSelectedIssues(new Set());
+  };
+
+  const handleBulkMarkIncomplete = () => {
+    toast.info(`Marking ${selectedIssues.size} issues as incomplete`);
+    setSelectedIssues(new Set());
   };
 
   if (!selectedTeamId) {
@@ -239,6 +287,17 @@ export const ProjectsViewEnhanced = () => {
           </TabsContent>
 
           <TabsContent value="issues" className="space-y-4">
+            {selectedIssues.size > 0 && (
+              <BulkActions
+                selectedCount={selectedIssues.size}
+                totalCount={filteredIssues.length}
+                onSelectAll={() => setSelectedIssues(new Set(filteredIssues.map((i: any) => i.id)))}
+                onClearSelection={() => setSelectedIssues(new Set())}
+                onMarkComplete={handleBulkMarkComplete}
+                onMarkIncomplete={handleBulkMarkIncomplete}
+              />
+            )}
+
             <div className="flex items-center gap-3 flex-wrap">
               <StatusFilter value={statusFilter} onChange={setStatusFilter} />
 
