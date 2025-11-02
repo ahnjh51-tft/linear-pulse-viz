@@ -140,29 +140,52 @@ export const TeamView = () => {
           <CardTitle>Team Members</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(teamMetrics.workloadByPerson as any[]).map((member: any) => (
-              <div
-                key={member.name}
-                className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(teamMetrics.workloadByPerson as any[]).map((member: any) => {
+              const memberIssues = issues.filter((i: any) => i.assignee?.id === member.name);
+              const completedIssues = memberIssues.filter((i: any) => i.state?.type === 'completed').length;
+              const completionRate = member.count > 0 ? Math.round((completedIssues / member.count) * 100) : 0;
+
+              return (
+                <div
+                  key={member.name}
+                  className="flex flex-col p-4 rounded-lg bg-secondary/30 border border-border/50 gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{member.name}</p>
+                      <p className="text-sm text-muted-foreground">{member.count} issues</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{member.name}</p>
-                    <p className="text-sm text-muted-foreground">{member.count} issues assigned</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Completed</span>
+                      <span className="font-medium">{completedIssues}/{member.count}</span>
+                    </div>
+                    {member.estimate > 0 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Story Points</span>
+                        <span className="font-medium">{member.estimate} pts</span>
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <div className="w-full bg-secondary rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-smooth"
+                          style={{ width: `${completionRate}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 text-center">
+                        {completionRate}% completion rate
+                      </p>
+                    </div>
                   </div>
                 </div>
-                {member.estimate > 0 && (
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{member.estimate} pts</p>
-                    <p className="text-xs text-muted-foreground">Story points</p>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>

@@ -334,6 +334,7 @@ export const Overview = () => {
               {filteredProjects.slice(0, 10).map((project: any, index) => (
                 <div
                   key={project.id}
+                  onClick={() => window.location.href = `/dashboard/project/${project.id}`}
                   className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-secondary/30 border border-border/50 hover:bg-secondary/50 hover:scale-[1.01] transition-all duration-200 gap-3 sm:gap-4 cursor-pointer group animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
