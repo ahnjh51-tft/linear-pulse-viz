@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/Sidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { Overview } from '@/components/dashboard/Overview';
+import ExecutiveSummary from '@/pages/ExecutiveSummary';
 import { TeamView } from '@/components/dashboard/TeamView';
 import { IssuesView } from '@/components/dashboard/LabelsView';
 import { ProjectsViewEnhanced } from '@/components/dashboard/ProjectsViewEnhanced';
@@ -23,7 +23,7 @@ const Dashboard = () => {
           <main className="flex-1 container mx-auto section-spacing">
             <ErrorBoundary>
               <Routes>
-                <Route path="/" element={<Overview />} />
+                <Route path="/" element={<ExecutiveSummary />} />
                 <Route path="/projects" element={<ProjectsViewEnhanced />} />
                 <Route path="/issues" element={<IssuesView />} />
                 <Route path="/team" element={<TeamView />} />

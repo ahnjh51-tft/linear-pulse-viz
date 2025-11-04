@@ -16,7 +16,7 @@ import { useLinear } from '@/contexts/LinearContext';
 import { Separator } from '@/components/ui/separator';
 
 const mainNavItems = [
-  { title: 'Overview', url: '/dashboard', icon: Home, end: true },
+  { title: 'Executive Summary', url: '/dashboard', icon: Home, end: true },
   { title: 'Projects', url: '/dashboard/projects', icon: Folder },
   { title: 'Issues Timeline', url: '/dashboard/issues', icon: Tag },
   { title: 'Team Performance', url: '/dashboard/team', icon: Users },

@@ -1,0 +1,272 @@
+import { useQuery } from '@apollo/client';
+import { useLinear } from '@/contexts/LinearContext';
+import { useDashboard } from '@/contexts/DashboardContext';
+import { GET_TEAM_ISSUES, GET_TEAM_PROJECTS, GET_PROJECT_MILESTONES } from '@/lib/linear-queries';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { RefreshCw, Download, Calendar } from 'lucide-react';
+import { IssueDistributionChart } from '@/components/dashboard/charts/IssueDistributionChart';
+import { MilestoneProgressCards } from '@/components/dashboard/charts/MilestoneProgressCards';
+import { EnhancedMilestoneGantt } from '@/components/dashboard/charts/EnhancedMilestoneGantt';
+import { IssueScatterPlot } from '@/components/dashboard/charts/IssueScatterPlot';
+import { useIssueDistribution } from '@/hooks/useIssueDistribution';
+import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
+
+const ExecutiveSummary = () => {
+  const { selectedTeamId } = useLinear();
+  const { dateRange, setDateRange, refresh, lastRefreshed } = useDashboard();
+  const [highlightedMilestoneId, setHighlightedMilestoneId] = useState<string>();
+
+  const { data: issuesData, loading: issuesLoading } = useQuery(GET_TEAM_ISSUES, {
+    variables: { teamId: selectedTeamId },
+    skip: !selectedTeamId,
+  });
+
+  const { data: projectsData, loading: projectsLoading } = useQuery(GET_TEAM_PROJECTS, {
+    variables: { teamId: selectedTeamId },
+    skip: !selectedTeamId,
+  });
+
+  const issues = issuesData?.team?.issues?.nodes;
+  const projects = projectsData?.team?.projects?.nodes;
+
+  // Get all milestones from all projects
+  const allMilestones = projects?.flatMap((project: any) => 
+    project.projectMilestones?.nodes?.map((milestone: any) => ({
+      ...milestone,
+      projectId: project.id,
+      projectName: project.name,
+      projectStartDate: project.startDate,
+      issues: project.issues,
+    })) || []
+  ) || [];
+
+  const distribution = useIssueDistribution(issues);
+
+  const handleRefresh = () => {
+    refresh();
+    toast({
+      title: "Dashboard refreshed",
+      description: "All data has been updated",
+    });
+  };
+
+  const handleExport = () => {
+    const exportData = {
+      generatedAt: new Date().toISOString(),
+      dateRange,
+      summary: {
+        totalIssues: distribution.total,
+        completionRate: distribution.total > 0 ? (distribution.done / distribution.total * 100).toFixed(1) : 0,
+        distribution,
+      },
+      milestones: allMilestones.length,
+      projects: projects?.length || 0,
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `executive-summary-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export complete",
+      description: "Summary data has been downloaded",
+    });
+  };
+
+  if (!selectedTeamId) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="p-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-semibold">No Team Selected</h2>
+            <p className="text-muted-foreground">
+              Please select a team from the header to view the executive summary
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Executive Summary</h1>
+          <p className="text-muted-foreground mt-1">
+            Performance overview and progress tracking
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Total Issues</p>
+            {issuesLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <p className="text-3xl font-bold">{distribution.total}</p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Completion Rate</p>
+            {issuesLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <p className="text-3xl font-bold">
+                {distribution.total > 0 
+                  ? ((distribution.done / distribution.total) * 100).toFixed(1)
+                  : 0}%
+              </p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Active Projects</p>
+            {projectsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <p className="text-3xl font-bold">{projects?.length || 0}</p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Total Milestones</p>
+            {projectsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <p className="text-3xl font-bold">{allMilestones.length}</p>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Section 1: Milestone Progress */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Milestone Progress</h2>
+          <p className="text-sm text-muted-foreground">
+            Track completion status across all project milestones
+          </p>
+        </div>
+        {projectsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="p-4">
+                <Skeleton className="h-20 w-full" />
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <MilestoneProgressCards 
+            milestones={allMilestones}
+            onMilestoneClick={setHighlightedMilestoneId}
+          />
+        )}
+      </div>
+
+      {/* Section 2: Project Timeline */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Project Timeline</h2>
+          <p className="text-sm text-muted-foreground">
+            Sequential Gantt chart showing milestone dependencies and progress
+          </p>
+        </div>
+        {projectsLoading ? (
+          <Card className="p-6">
+            <Skeleton className="h-64 w-full" />
+          </Card>
+        ) : (
+          <EnhancedMilestoneGantt 
+            milestones={allMilestones}
+            highlightedMilestoneId={highlightedMilestoneId}
+          />
+        )}
+      </div>
+
+      {/* Section 3: Issue Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          {issuesLoading ? (
+            <Card className="p-6">
+              <Skeleton className="h-64 w-full" />
+            </Card>
+          ) : (
+            <IssueDistributionChart issues={issues} />
+          )}
+        </div>
+        
+        <div className="space-y-4">
+          <Card className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+              <p className="text-2xl font-bold">{distribution.inProgress}</p>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">To Do</p>
+              <p className="text-2xl font-bold">{distribution.todo}</p>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Backlog</p>
+              <p className="text-2xl font-bold">{distribution.backlog}</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Section 4: Issue Timeline Analysis */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Issue Timeline Analysis</h2>
+          <p className="text-sm text-muted-foreground">
+            Scatter plot showing when issues were created and how long they took to complete
+          </p>
+        </div>
+        {issuesLoading ? (
+          <Card className="p-6">
+            <Skeleton className="h-96 w-full" />
+          </Card>
+        ) : (
+          <IssueScatterPlot issues={issues} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ExecutiveSummary;
