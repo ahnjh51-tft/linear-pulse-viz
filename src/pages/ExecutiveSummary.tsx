@@ -9,16 +9,18 @@ import { RefreshCw, Download, Calendar } from 'lucide-react';
 import { IssueDistributionChart } from '@/components/dashboard/charts/IssueDistributionChart';
 import { MilestoneProgressCards } from '@/components/dashboard/charts/MilestoneProgressCards';
 import { EnhancedMilestoneGantt } from '@/components/dashboard/charts/EnhancedMilestoneGantt';
-import { IssueScatterPlot } from '@/components/dashboard/charts/IssueScatterPlot';
+import { IssueCountScatterPlot } from '@/components/dashboard/charts/IssueCountScatterPlot';
+import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
 import { useIssueDistribution } from '@/hooks/useIssueDistribution';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from '@/hooks/use-toast';
 
 const ExecutiveSummary = () => {
   const { selectedTeamId } = useLinear();
   const { dateRange, setDateRange, refresh, lastRefreshed } = useDashboard();
   const [highlightedMilestoneId, setHighlightedMilestoneId] = useState<string>();
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
 
   const { data: issuesData, loading: issuesLoading } = useQuery(GET_TEAM_ISSUES, {
     variables: { teamId: selectedTeamId },
@@ -44,7 +46,19 @@ const ExecutiveSummary = () => {
     })) || []
   ) || [];
 
-  const distribution = useIssueDistribution(issues);
+  // Filter milestones and issues by selected project
+  const filteredMilestones = useMemo(() => {
+    if (selectedProjectId === 'all') return allMilestones;
+    return allMilestones.filter((m: any) => m.projectId === selectedProjectId);
+  }, [allMilestones, selectedProjectId]);
+
+  const filteredIssues = useMemo(() => {
+    if (!issues) return undefined;
+    if (selectedProjectId === 'all') return issues;
+    return issues.filter((issue: any) => issue.project?.id === selectedProjectId);
+  }, [issues, selectedProjectId]);
+
+  const distribution = useIssueDistribution(filteredIssues);
 
   const handleRefresh = () => {
     refresh();
@@ -108,6 +122,11 @@ const ExecutiveSummary = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <ProjectSelector
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            onProjectChange={setSelectedProjectId}
+          />
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -189,8 +208,9 @@ const ExecutiveSummary = () => {
           </div>
         ) : (
           <MilestoneProgressCards 
-            milestones={allMilestones}
+            milestones={filteredMilestones}
             onMilestoneClick={setHighlightedMilestoneId}
+            projectSelected={selectedProjectId !== 'all'}
           />
         )}
       </div>
@@ -209,8 +229,9 @@ const ExecutiveSummary = () => {
           </Card>
         ) : (
           <EnhancedMilestoneGantt 
-            milestones={allMilestones}
+            milestones={filteredMilestones}
             highlightedMilestoneId={highlightedMilestoneId}
+            projectSelected={selectedProjectId !== 'all'}
           />
         )}
       </div>
@@ -223,7 +244,7 @@ const ExecutiveSummary = () => {
               <Skeleton className="h-64 w-full" />
             </Card>
           ) : (
-            <IssueDistributionChart issues={issues} />
+            <IssueDistributionChart issues={filteredIssues} />
           )}
         </div>
         
@@ -249,12 +270,12 @@ const ExecutiveSummary = () => {
         </div>
       </div>
 
-      {/* Section 4: Issue Timeline Analysis */}
+      {/* Section 4: Issue Creation Frequency */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-semibold">Issue Timeline Analysis</h2>
+          <h2 className="text-xl font-semibold">Issue Creation Frequency</h2>
           <p className="text-sm text-muted-foreground">
-            Scatter plot showing when issues were created and how long they took to complete
+            Track issue creation patterns over time
           </p>
         </div>
         {issuesLoading ? (
@@ -262,7 +283,7 @@ const ExecutiveSummary = () => {
             <Skeleton className="h-96 w-full" />
           </Card>
         ) : (
-          <IssueScatterPlot issues={issues} />
+          <IssueCountScatterPlot issues={filteredIssues} />
         )}
       </div>
     </div>

@@ -1,26 +1,27 @@
 // Manager-focused chart color palette with vibrant colors
 
+// Hawaiian Ocean color palette
 export const linearStatusColors = {
-  backlog: '#64748b',      // Slate
-  todo: '#f59e0b',         // Amber
-  'in progress': '#3b82f6', // Blue
-  done: '#10b981',         // Green
-  canceled: '#6b7280',     // Gray
-  duplicate: '#8b5cf6',    // Purple
-  triage: '#ef4444',       // Red
+  backlog: '#AED9DA',      // Chill (light teal)
+  todo: '#3DDAD7',         // Californian Coral (cyan)
+  'in progress': '#2A93D5', // Bondi Blue
+  done: '#135589',         // Marina (dark blue)
+  canceled: '#94a3b8',     // Gray
+  duplicate: '#AED9DA',    // Chill
+  triage: '#EDFAFD',       // Glass (very light)
 } as const;
 
 export const managerChartPalette = {
-  completed: '#10b981',    // Green
-  inProgress: '#3b82f6',   // Blue
-  todo: '#f59e0b',         // Amber
-  overdue: '#ef4444',      // Red
-  atRisk: '#f97316',       // Orange
-  onTrack: '#22c55e',      // Light Green
-  planned: '#64748b',      // Slate
-  primary: '#6366f1',      // Indigo
-  secondary: '#8b5cf6',    // Purple
-  accent: '#ec4899',       // Pink
+  completed: '#135589',    // Marina
+  inProgress: '#2A93D5',   // Bondi Blue
+  todo: '#3DDAD7',         // Californian Coral
+  overdue: '#ef4444',      // Red (kept for visibility)
+  atRisk: '#f97316',       // Orange (kept for visibility)
+  onTrack: '#22c55e',      // Green (kept for visibility)
+  planned: '#AED9DA',      // Chill
+  primary: '#2A93D5',      // Bondi Blue
+  secondary: '#3DDAD7',    // Californian Coral
+  accent: '#EDFAFD',       // Glass
 } as const;
 
 // Get color for Linear issue state

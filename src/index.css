@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Linear-style dark theme (default) */
+    /* Hawaiian Ocean dark theme (default) */
     --background: 220 27% 5%; /* #0B0F14 */
     --foreground: 210 20% 98%;
 
@@ -18,17 +18,17 @@ All colors MUST be HSL.
     --popover: 220 20% 8%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 261 80% 60%; /* #7C3AED purple accent */
+    --primary: 198 67% 49%; /* #2A93D5 Bondi Blue */
     --primary-foreground: 210 20% 98%;
 
-    --secondary: 220 20% 12%;
+    --secondary: 179 69% 55%; /* #3DDAD7 Californian Coral */
     --secondary-foreground: 210 20% 98%;
 
     --muted: 220 20% 12%;
     --muted-foreground: 218 11% 65%; /* #9AA4AF */
 
-    --accent: 261 80% 60%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 192 87% 96%; /* #EDFAFD Glass */
+    --accent-foreground: 198 67% 49%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 20% 98%;
@@ -41,29 +41,29 @@ All colors MUST be HSL.
 
     --border: 220 20% 15%;
     --input: 220 20% 15%;
-    --ring: 261 80% 60%;
+    --ring: 198 67% 49%;
 
     --radius: 0.875rem; /* 14px - Linear style */
 
     --sidebar-background: 220 27% 5%;
     --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 261 80% 60%;
+    --sidebar-primary: 198 67% 49%;
     --sidebar-primary-foreground: 210 20% 98%;
     --sidebar-accent: 220 20% 12%;
     --sidebar-accent-foreground: 210 20% 98%;
     --sidebar-border: 220 20% 15%;
-    --sidebar-ring: 261 80% 60%;
+    --sidebar-ring: 198 67% 49%;
 
-    /* Custom Linear-style design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(261 80% 60%), hsl(261 90% 70%));
+    /* Hawaiian Ocean design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(198 67% 49%), hsl(179 69% 55%));
     --gradient-card: linear-gradient(180deg, hsl(220 20% 8%), hsl(220 20% 6%));
-    --shadow-elegant: 0 10px 30px -10px hsl(261 80% 60% / 0.2);
+    --shadow-elegant: 0 10px 30px -10px hsl(198 67% 49% / 0.2);
     --shadow-card: 0 4px 12px hsl(220 27% 5% / 0.4);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .light {
-    /* Light mode */
+    /* Hawaiian Ocean light mode */
     --background: 0 0% 100%;
     --foreground: 220 27% 5%;
 
@@ -73,17 +73,17 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 27% 5%;
 
-    --primary: 261 80% 60%;
+    --primary: 198 67% 49%; /* Bondi Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 92%;
-    --secondary-foreground: 220 27% 5%;
+    --secondary: 179 69% 55%; /* Californian Coral */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 220 20% 92%;
     --muted-foreground: 218 11% 45%;
 
-    --accent: 261 80% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 192 87% 96%; /* Glass */
+    --accent-foreground: 198 67% 49%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -96,25 +96,25 @@ All colors MUST be HSL.
 
     --border: 220 20% 85%;
     --input: 220 20% 85%;
-    --ring: 261 80% 60%;
+    --ring: 198 67% 49%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 220 27% 5%;
-    --sidebar-primary: 261 80% 60%;
+    --sidebar-primary: 198 67% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 20% 92%;
     --sidebar-accent-foreground: 220 27% 5%;
     --sidebar-border: 220 20% 85%;
-    --sidebar-ring: 261 80% 60%;
+    --sidebar-ring: 198 67% 49%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(261 80% 60%), hsl(261 90% 70%));
+    --gradient-primary: linear-gradient(135deg, hsl(198 67% 49%), hsl(179 69% 55%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 96%));
-    --shadow-elegant: 0 10px 30px -10px hsl(261 80% 60% / 0.2);
+    --shadow-elegant: 0 10px 30px -10px hsl(198 67% 49% / 0.2);
     --shadow-card: 0 4px 12px hsl(220 20% 20% / 0.1);
   }
 
   .dark {
-    /* Same as root for dark-first design */
+    /* Hawaiian Ocean dark mode (same as root) */
     --background: 220 27% 5%;
     --foreground: 210 20% 98%;
 
@@ -124,17 +124,17 @@ All colors MUST be HSL.
     --popover: 220 20% 8%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 261 80% 60%;
+    --primary: 198 67% 49%; /* Bondi Blue */
     --primary-foreground: 210 20% 98%;
 
-    --secondary: 220 20% 12%;
+    --secondary: 179 69% 55%; /* Californian Coral */
     --secondary-foreground: 210 20% 98%;
 
     --muted: 220 20% 12%;
     --muted-foreground: 218 11% 65%;
 
-    --accent: 261 80% 60%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 192 87% 96%; /* Glass */
+    --accent-foreground: 198 67% 49%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 20% 98%;
@@ -147,16 +147,16 @@ All colors MUST be HSL.
 
     --border: 220 20% 15%;
     --input: 220 20% 15%;
-    --ring: 261 80% 60%;
+    --ring: 198 67% 49%;
 
     --sidebar-background: 220 27% 5%;
     --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 261 80% 60%;
+    --sidebar-primary: 198 67% 49%;
     --sidebar-primary-foreground: 210 20% 98%;
     --sidebar-accent: 220 20% 12%;
     --sidebar-accent-foreground: 210 20% 98%;
     --sidebar-border: 220 20% 15%;
-    --sidebar-ring: 261 80% 60%;
+    --sidebar-ring: 198 67% 49%;
   }
 }
 

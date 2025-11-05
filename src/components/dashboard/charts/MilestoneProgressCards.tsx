@@ -26,6 +26,7 @@ interface MilestoneProgressCardsProps {
   milestones: Milestone[] | undefined;
   projectStartDate?: string;
   onMilestoneClick?: (milestoneId: string) => void;
+  projectSelected?: boolean;
 }
 
 const getStatusIcon = (status: EnrichedMilestone['status']) => {
@@ -58,15 +59,25 @@ const getStatusLabel = (status: EnrichedMilestone['status']) => {
 export const MilestoneProgressCards = ({ 
   milestones, 
   projectStartDate,
-  onMilestoneClick 
+  onMilestoneClick,
+  projectSelected = true
 }: MilestoneProgressCardsProps) => {
   const enrichedMilestones = useMilestoneMetrics(milestones, projectStartDate);
 
   if (!enrichedMilestones || enrichedMilestones.length === 0) {
     return (
       <Card className="p-6">
-        <div className="text-center text-muted-foreground">
-          No milestones defined for this project
+        <div className="text-center space-y-2">
+          <p className="text-muted-foreground">
+            {projectSelected 
+              ? "No milestones defined for this project"
+              : "Select a project to view milestones"}
+          </p>
+          {projectSelected && (
+            <p className="text-sm text-muted-foreground">
+              Create milestones in Linear to track project progress
+            </p>
+          )}
         </div>
       </Card>
     );

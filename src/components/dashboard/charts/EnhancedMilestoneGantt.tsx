@@ -26,12 +26,14 @@ interface EnhancedMilestoneGanttProps {
   milestones: Milestone[] | undefined;
   projectStartDate?: string;
   highlightedMilestoneId?: string;
+  projectSelected?: boolean;
 }
 
 export const EnhancedMilestoneGantt = ({ 
   milestones, 
   projectStartDate,
-  highlightedMilestoneId 
+  highlightedMilestoneId,
+  projectSelected = true
 }: EnhancedMilestoneGanttProps) => {
   const enrichedMilestones = useMilestoneMetrics(milestones, projectStartDate);
   const highlightedRef = useRef<HTMLDivElement>(null);
@@ -77,8 +79,17 @@ export const EnhancedMilestoneGantt = ({
   if (!enrichedMilestones || enrichedMilestones.length === 0) {
     return (
       <Card className="p-6">
-        <div className="text-center text-muted-foreground">
-          No milestones to display
+        <div className="text-center space-y-2">
+          <p className="text-muted-foreground">
+            {projectSelected 
+              ? "No milestones to display"
+              : "Select a project to view timeline"}
+          </p>
+          {projectSelected && (
+            <p className="text-sm text-muted-foreground">
+              Add milestones in Linear to visualize project timeline
+            </p>
+          )}
         </div>
       </Card>
     );
