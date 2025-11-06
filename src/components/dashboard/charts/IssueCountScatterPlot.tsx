@@ -113,11 +113,12 @@ export const IssueCountScatterPlot = ({ issues }: IssueCountScatterPlotProps) =>
     return null;
   };
 
-  // Transform data for chart
+  // Transform data for chart - ensure unique x values
   const chartData = countData.map(point => ({
     ...point,
     x: point.date.getTime(),
     y: point.count,
+    statusColor: point.statusColor,
   }));
 
   if (!issues || issues.length === 0) {
@@ -153,7 +154,7 @@ export const IssueCountScatterPlot = ({ issues }: IssueCountScatterPlotProps) =>
                 Filters
               </Button>
               
-              {(selectedProjects.length > 1 || !selectedProjects.includes('all') || selectedStatuses.length < statusOptions.length) && (
+              {(selectedStatuses.length < statusOptions.length) && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -169,33 +170,6 @@ export const IssueCountScatterPlot = ({ issues }: IssueCountScatterPlotProps) =>
           {/* Filter Controls */}
           {showFilters && (
             <div className="flex flex-wrap gap-3 p-4 bg-muted/50 rounded-lg">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    Projects ({selectedProjects.includes('all') ? 'All' : selectedProjects.length})
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56 bg-popover z-50">
-                  <DropdownMenuLabel>Filter by Project</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={selectedProjects.includes('all')}
-                    onCheckedChange={() => handleProjectToggle('all')}
-                  >
-                    All Projects
-                  </DropdownMenuCheckboxItem>
-                  {availableProjects.map(project => (
-                    <DropdownMenuCheckboxItem
-                      key={project.id}
-                      checked={selectedProjects.includes(project.id)}
-                      onCheckedChange={() => handleProjectToggle(project.id)}
-                    >
-                      {project.name}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -247,8 +221,8 @@ export const IssueCountScatterPlot = ({ issues }: IssueCountScatterPlotProps) =>
                 {chartData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={managerChartPalette.primary}
-                    opacity={0.7}
+                    fill={entry.statusColor}
+                    opacity={0.8}
                     className="cursor-pointer hover:opacity-100"
                   />
                 ))}

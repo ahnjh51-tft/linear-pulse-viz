@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { startOfDay } from 'date-fns';
+import { linearStatusColors, managerChartPalette } from '@/lib/manager-chart-colors';
 
 interface Issue {
   id: string;
@@ -22,6 +23,8 @@ export interface IssueCountDataPoint {
   count: number;
   issues: Issue[];
   statusBreakdown: { [status: string]: number };
+  dominantStatus: string;
+  statusColor: string;
 }
 
 export const useIssueCountData = (issues: Issue[] | undefined) => {
@@ -62,16 +65,28 @@ export const useIssueCountData = (issues: Issue[] | undefined) => {
     return Array.from(dateMap.entries())
       .map(([dateKey, issuesForDate]) => {
         const statusBreakdown: { [status: string]: number } = {};
+        const typeBreakdown: { [type: string]: number } = {};
+        
         issuesForDate.forEach((issue) => {
           const status = issue.state.name;
+          const type = issue.state.type;
           statusBreakdown[status] = (statusBreakdown[status] || 0) + 1;
+          typeBreakdown[type] = (typeBreakdown[type] || 0) + 1;
         });
+
+        // Find dominant status type
+        const dominantStatus = Object.entries(typeBreakdown)
+          .sort(([, a], [, b]) => b - a)[0][0];
+        
+        const statusColor = linearStatusColors[dominantStatus] || managerChartPalette.primary;
 
         return {
           date: new Date(dateKey),
           count: issuesForDate.length,
           issues: issuesForDate,
           statusBreakdown,
+          dominantStatus,
+          statusColor,
         };
       })
       .sort((a, b) => a.date.getTime() - b.date.getTime());

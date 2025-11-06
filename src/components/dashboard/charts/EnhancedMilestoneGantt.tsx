@@ -81,15 +81,11 @@ export const EnhancedMilestoneGantt = ({
       <Card className="p-6">
         <div className="text-center space-y-2">
           <p className="text-muted-foreground">
-            {projectSelected 
-              ? "No milestones to display"
-              : "Select a project to view timeline"}
+            No milestones to display
           </p>
-          {projectSelected && (
-            <p className="text-sm text-muted-foreground">
-              Add milestones in Linear to visualize project timeline
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            Add milestones in Linear to visualize project timeline
+          </p>
         </div>
       </Card>
     );
