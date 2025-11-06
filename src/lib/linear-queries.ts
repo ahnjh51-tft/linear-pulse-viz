@@ -49,6 +49,23 @@ export const GET_TEAM_PROJECTS = gql`
             name
             avatarUrl
           }
+          projectMilestones(first: 200) {
+            nodes {
+              id
+              name
+              description
+              targetDate
+              sortOrder
+              issues {
+                nodes {
+                  id
+                  state {
+                    type
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
