@@ -35,6 +35,9 @@ const ExecutiveSummary = () => {
   const issues = issuesData?.team?.issues?.nodes;
   const projects = projectsData?.team?.projects?.nodes;
 
+  console.log('Projects data:', projects);
+  console.log('Projects length:', projects?.length);
+
   // Get all milestones from all projects
   const allMilestones = projects?.flatMap((project: any) => 
     project.projectMilestones?.nodes?.map((milestone: any) => ({
@@ -122,12 +125,14 @@ const ExecutiveSummary = () => {
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <ProjectSelector
-            projects={projects}
-            selectedProjectId={selectedProjectId}
-            onProjectChange={setSelectedProjectId}
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          {projects && projects.length > 0 && (
+            <ProjectSelector
+              projects={projects}
+              selectedProjectId={selectedProjectId}
+              onProjectChange={setSelectedProjectId}
+            />
+          )}
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
