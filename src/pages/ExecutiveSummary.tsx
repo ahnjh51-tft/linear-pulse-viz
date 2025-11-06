@@ -42,7 +42,8 @@ const ExecutiveSummary = () => {
       projectId: project.id,
       projectName: project.name,
       projectStartDate: project.startDate,
-      issues: project.issues,
+      // Use issues from the milestone itself, not from project
+      issues: milestone.issues,
     })) || []
   ) || [];
 

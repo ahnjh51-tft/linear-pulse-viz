@@ -66,6 +66,21 @@ export const GET_TEAM_PROJECTS = gql`
               }
             }
           }
+          issues(first: 200) {
+            nodes {
+              id
+              identifier
+              title
+              state {
+                id
+                name
+                type
+              }
+              project {
+                id
+              }
+            }
+          }
         }
       }
     }
