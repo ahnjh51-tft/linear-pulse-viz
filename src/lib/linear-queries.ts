@@ -35,7 +35,7 @@ export const GET_TEAM_PROJECTS = gql`
     team(id: $teamId) {
       id
       name
-      projects(first: 100) {
+      projects(first: 50) {
         nodes {
           id
           name
@@ -49,7 +49,7 @@ export const GET_TEAM_PROJECTS = gql`
             name
             avatarUrl
           }
-          projectMilestones(first: 200) {
+          projectMilestones(first: 50) {
             nodes {
               id
               name
