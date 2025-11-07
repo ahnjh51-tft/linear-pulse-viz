@@ -27,16 +27,24 @@ const ExecutiveSummary = () => {
     skip: !selectedTeamId,
   });
 
-  const { data: projectsData, loading: projectsLoading } = useQuery(GET_TEAM_PROJECTS, {
+  const { data: projectsData, loading: projectsLoading, error: projectsError } = useQuery(GET_TEAM_PROJECTS, {
     variables: { teamId: selectedTeamId },
     skip: !selectedTeamId,
   });
 
-  const issues = issuesData?.team?.issues?.nodes;
-  const projects = projectsData?.team?.projects?.nodes;
+  // Add fallback arrays to prevent undefined
+  const issues = issuesData?.team?.issues?.nodes || [];
+  const projects = projectsData?.team?.projects?.nodes || [];
 
-  console.log('Projects data:', projects);
-  console.log('Projects length:', projects?.length);
+  // Debug logging for project selector
+  if (projectsError) {
+    console.error('GraphQL Error fetching projects:', projectsError);
+  }
+  console.log('Raw projectsData:', projectsData);
+  console.log('Team ID:', selectedTeamId);
+  console.log('Projects loading:', projectsLoading);
+  console.log('Projects array:', projects);
+  console.log('Projects length:', projects.length);
 
   // Get all milestones from all projects
   const allMilestones = projects?.flatMap((project: any) => 
@@ -57,7 +65,7 @@ const ExecutiveSummary = () => {
   }, [allMilestones, selectedProjectId]);
 
   const filteredIssues = useMemo(() => {
-    if (!issues) return undefined;
+    if (!issues || issues.length === 0) return [];
     if (selectedProjectId === 'all') return issues;
     return issues.filter((issue: any) => issue.project?.id === selectedProjectId);
   }, [issues, selectedProjectId]);
@@ -126,13 +134,11 @@ const ExecutiveSummary = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          {projects && projects.length > 0 && (
-            <ProjectSelector
-              projects={projects}
-              selectedProjectId={selectedProjectId}
-              onProjectChange={setSelectedProjectId}
-            />
-          )}
+          <ProjectSelector
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            onProjectChange={setSelectedProjectId}
+          />
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
