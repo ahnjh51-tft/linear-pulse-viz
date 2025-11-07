@@ -46,12 +46,12 @@ const ExecutiveSummary = () => {
   console.log('Projects array:', projects);
   console.log('Projects length:', projects.length);
 
-  // Get all milestones from all projects and calculate their progress from issues
+  // Get all milestones from all projects and link actual issues to each milestone
   const allMilestones = projects?.flatMap((project: any) => 
     project.projectMilestones?.nodes?.map((milestone: any) => {
-      // Calculate milestone progress from issues that belong to this milestone
+      // Find issues that actually belong to this specific milestone
       const milestoneIssues = issues?.filter((issue: any) => 
-        issue.project?.id === project.id
+        issue.projectMilestone?.id === milestone.id
       ) || [];
       
       return {
@@ -208,7 +208,28 @@ const ExecutiveSummary = () => {
         </Card>
       </div>
 
-      {/* Section 1: Milestone Progress */}
+      {/* Section 1: Project Timeline */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Project Timeline</h2>
+          <p className="text-sm text-muted-foreground">
+            Sequential Gantt chart showing milestone dependencies and progress
+          </p>
+        </div>
+        {projectsLoading ? (
+          <Card className="p-6">
+            <Skeleton className="h-64 w-full" />
+          </Card>
+        ) : (
+          <EnhancedMilestoneGantt 
+            milestones={filteredMilestones}
+            highlightedMilestoneId={highlightedMilestoneId}
+            projectSelected={selectedProjectId !== 'all'}
+          />
+        )}
+      </div>
+
+      {/* Section 2: Milestone Progress */}
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold">Milestone Progress</h2>
@@ -228,27 +249,6 @@ const ExecutiveSummary = () => {
           <MilestoneProgressCards 
             milestones={filteredMilestones}
             onMilestoneClick={setHighlightedMilestoneId}
-            projectSelected={selectedProjectId !== 'all'}
-          />
-        )}
-      </div>
-
-      {/* Section 2: Project Timeline */}
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold">Project Timeline</h2>
-          <p className="text-sm text-muted-foreground">
-            Sequential Gantt chart showing milestone dependencies and progress
-          </p>
-        </div>
-        {projectsLoading ? (
-          <Card className="p-6">
-            <Skeleton className="h-64 w-full" />
-          </Card>
-        ) : (
-          <EnhancedMilestoneGantt 
-            milestones={filteredMilestones}
-            highlightedMilestoneId={highlightedMilestoneId}
             projectSelected={selectedProjectId !== 'all'}
           />
         )}

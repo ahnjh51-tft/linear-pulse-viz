@@ -98,6 +98,10 @@ export const GET_TEAM_ISSUES = gql`
             id
             name
           }
+          projectMilestone {
+            id
+            name
+          }
         }
       }
     }
