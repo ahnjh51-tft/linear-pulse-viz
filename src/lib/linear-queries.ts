@@ -56,29 +56,6 @@ export const GET_TEAM_PROJECTS = gql`
               description
               targetDate
               sortOrder
-              issues {
-                nodes {
-                  id
-                  state {
-                    type
-                  }
-                }
-              }
-            }
-          }
-          issues(first: 200) {
-            nodes {
-              id
-              identifier
-              title
-              state {
-                id
-                name
-                type
-              }
-              project {
-                id
-              }
             }
           }
         }

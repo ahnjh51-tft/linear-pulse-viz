@@ -46,16 +46,22 @@ const ExecutiveSummary = () => {
   console.log('Projects array:', projects);
   console.log('Projects length:', projects.length);
 
-  // Get all milestones from all projects
+  // Get all milestones from all projects and calculate their progress from issues
   const allMilestones = projects?.flatMap((project: any) => 
-    project.projectMilestones?.nodes?.map((milestone: any) => ({
-      ...milestone,
-      projectId: project.id,
-      projectName: project.name,
-      projectStartDate: project.startDate,
-      // Use issues from the milestone itself, not from project
-      issues: milestone.issues,
-    })) || []
+    project.projectMilestones?.nodes?.map((milestone: any) => {
+      // Calculate milestone progress from issues that belong to this milestone
+      const milestoneIssues = issues?.filter((issue: any) => 
+        issue.project?.id === project.id
+      ) || [];
+      
+      return {
+        ...milestone,
+        projectId: project.id,
+        projectName: project.name,
+        projectStartDate: project.startDate,
+        issues: { nodes: milestoneIssues },
+      };
+    }) || []
   ) || [];
 
   // Filter milestones and issues by selected project

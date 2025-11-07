@@ -8,26 +8,81 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Hawaiian Ocean dark theme (default) */
-    --background: 220 27% 5%; /* #0B0F14 */
+    /* Hawaiian Ocean light mode (default) */
+    --background: 0 0% 100%;
+    --foreground: 220 27% 5%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 220 27% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 27% 5%;
+
+    --primary: 198 67% 49%; /* Bondi Blue */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 179 69% 55%; /* Californian Coral */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 20% 92%;
+    --muted-foreground: 218 11% 45%;
+
+    --accent: 192 87% 96%; /* Glass */
+    --accent-foreground: 198 67% 49%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 20% 85%;
+    --input: 220 20% 85%;
+    --ring: 198 67% 49%;
+
+    --radius: 0.875rem; /* 14px - Linear style */
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 27% 5%;
+    --sidebar-primary: 198 67% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 92%;
+    --sidebar-accent-foreground: 220 27% 5%;
+    --sidebar-border: 220 20% 85%;
+    --sidebar-ring: 198 67% 49%;
+
+    /* Hawaiian Ocean design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(198 67% 49%), hsl(179 69% 55%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 96%));
+    --shadow-elegant: 0 10px 30px -10px hsl(198 67% 49% / 0.2);
+    --shadow-card: 0 4px 12px hsl(220 20% 20% / 0.1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* Hawaiian Ocean dark mode */
+    --background: 220 27% 5%;
     --foreground: 210 20% 98%;
 
-    --card: 220 20% 8%; /* #151A21 */
+    --card: 220 20% 8%;
     --card-foreground: 210 20% 98%;
 
     --popover: 220 20% 8%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 198 67% 49%; /* #2A93D5 Bondi Blue */
+    --primary: 198 67% 49%; /* Bondi Blue */
     --primary-foreground: 210 20% 98%;
 
-    --secondary: 179 69% 55%; /* #3DDAD7 Californian Coral */
+    --secondary: 179 69% 55%; /* Californian Coral */
     --secondary-foreground: 210 20% 98%;
 
     --muted: 220 20% 12%;
-    --muted-foreground: 218 11% 65%; /* #9AA4AF */
+    --muted-foreground: 218 11% 65%;
 
-    --accent: 192 87% 96%; /* #EDFAFD Glass */
+    --accent: 192 87% 96%; /* Glass */
     --accent-foreground: 198 67% 49%;
 
     --destructive: 0 84% 60%;
@@ -43,8 +98,6 @@ All colors MUST be HSL.
     --input: 220 20% 15%;
     --ring: 198 67% 49%;
 
-    --radius: 0.875rem; /* 14px - Linear style */
-
     --sidebar-background: 220 27% 5%;
     --sidebar-foreground: 210 20% 98%;
     --sidebar-primary: 198 67% 49%;
@@ -54,16 +107,14 @@ All colors MUST be HSL.
     --sidebar-border: 220 20% 15%;
     --sidebar-ring: 198 67% 49%;
 
-    /* Hawaiian Ocean design tokens */
     --gradient-primary: linear-gradient(135deg, hsl(198 67% 49%), hsl(179 69% 55%));
     --gradient-card: linear-gradient(180deg, hsl(220 20% 8%), hsl(220 20% 6%));
     --shadow-elegant: 0 10px 30px -10px hsl(198 67% 49% / 0.2);
     --shadow-card: 0 4px 12px hsl(220 27% 5% / 0.4);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .light {
-    /* Hawaiian Ocean light mode */
+    /* Light mode same as root */
     --background: 0 0% 100%;
     --foreground: 220 27% 5%;
 

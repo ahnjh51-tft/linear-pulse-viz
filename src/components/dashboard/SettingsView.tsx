@@ -10,19 +10,19 @@ import { useState, useEffect } from 'react';
 
 export const SettingsView = () => {
   const { disconnect } = useLinear();
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
-      } else {
-        document.documentElement.classList.remove('light');
-        document.documentElement.classList.add('dark');
-      }
+    const initialTheme = savedTheme || 'light'; // Default to light
+    setTheme(initialTheme);
+    
+    if (initialTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
     }
   }, []);
 
