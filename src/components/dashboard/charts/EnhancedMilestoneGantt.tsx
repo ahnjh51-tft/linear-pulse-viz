@@ -101,18 +101,22 @@ export const EnhancedMilestoneGantt = ({
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="relative">
           {/* Timeline Header */}
-          <div className="relative h-8 border-b border-border">
-            <div className="absolute inset-0 flex items-end text-xs text-muted-foreground">
-              <span className="absolute left-0">{format(timelineStart, 'MMM dd')}</span>
-              <span className="absolute left-1/2 -translate-x-1/2">{format(new Date((timelineStart.getTime() + timelineEnd.getTime()) / 2), 'MMM dd')}</span>
-              <span className="absolute right-0">{format(timelineEnd, 'MMM dd')}</span>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-48 shrink-0" />
+            <div className="flex-1 relative h-8 border-b border-border">
+              <div className="absolute inset-0 flex items-end justify-between text-xs text-muted-foreground px-1">
+                <span>{format(timelineStart, 'MMM dd')}</span>
+                <span>{format(new Date((timelineStart.getTime() + timelineEnd.getTime()) / 2), 'MMM dd')}</span>
+                <span>{format(timelineEnd, 'MMM dd')}</span>
+              </div>
             </div>
+            <div className="w-24 shrink-0" />
           </div>
 
           {/* Milestones */}
-          <div className="space-y-2">
+          <div className="space-y-3 relative">
             {enrichedMilestones.map((milestone) => {
               const position = getPositionAndWidth(milestone.startDate, milestone.endDate);
               const isHighlighted = milestone.id === highlightedMilestoneId;
@@ -121,101 +125,99 @@ export const EnhancedMilestoneGantt = ({
                 <div
                   key={milestone.id}
                   ref={isHighlighted ? highlightedRef : undefined}
-                  className={`relative ${isHighlighted ? 'ring-2 ring-primary rounded-md' : ''}`}
+                  className={`flex items-center gap-3 ${isHighlighted ? 'ring-2 ring-primary rounded-md p-1' : ''}`}
                 >
-                  <div className="flex items-center gap-3 min-h-[60px]">
-                    {/* Milestone Name */}
-                    <div className="w-48 shrink-0">
-                      <p className="text-sm font-medium line-clamp-2">{milestone.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {milestone.completedIssues}/{milestone.totalIssues} issues
-                      </p>
-                    </div>
+                  {/* Milestone Name */}
+                  <div className="w-48 shrink-0">
+                    <p className="text-sm font-medium line-clamp-2">{milestone.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {milestone.completedIssues}/{milestone.totalIssues} issues
+                    </p>
+                  </div>
 
-                    {/* Timeline Bar */}
-                    <div className="flex-1 relative h-12">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
+                  {/* Timeline Bar */}
+                  <div className="flex-1 relative h-12">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 h-8 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                            style={{
+                              left: position.left,
+                              width: position.width,
+                              backgroundColor: getMilestoneStatusColor(milestone.status),
+                              opacity: 0.9,
+                            }}
+                          >
+                            {/* Progress Fill */}
                             <div
-                              className="absolute top-1/2 -translate-y-1/2 h-8 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                              style={{
-                                left: position.left,
-                                width: position.width,
+                              className="h-full bg-white/30"
+                              style={{ width: `${milestone.completionRate}%` }}
+                            />
+                            
+                            {/* Issue Count Badge */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-white px-2 py-0.5 bg-black/20 rounded">
+                                {milestone.totalIssues}
+                              </span>
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <div className="space-y-1">
+                            <p className="font-semibold">{milestone.name}</p>
+                            <p className="text-xs">
+                              {format(milestone.startDate, 'MMM dd, yyyy')} → {format(milestone.endDate, 'MMM dd, yyyy')}
+                            </p>
+                            <p className="text-xs">
+                              Progress: {milestone.completionRate.toFixed(0)}% 
+                              ({milestone.completedIssues}/{milestone.totalIssues} issues)
+                            </p>
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs"
+                              style={{ 
                                 backgroundColor: getMilestoneStatusColor(milestone.status),
-                                opacity: 0.9,
+                                color: 'white'
                               }}
                             >
-                              {/* Progress Fill */}
-                              <div
-                                className="h-full bg-white/30"
-                                style={{ width: `${milestone.completionRate}%` }}
-                              />
-                              
-                              {/* Issue Count Badge */}
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs font-semibold text-white px-2 py-0.5 bg-black/20 rounded">
-                                  {milestone.totalIssues}
-                                </span>
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <div className="space-y-1">
-                              <p className="font-semibold">{milestone.name}</p>
-                              <p className="text-xs">
-                                {format(milestone.startDate, 'MMM dd, yyyy')} → {format(milestone.endDate, 'MMM dd, yyyy')}
-                              </p>
-                              <p className="text-xs">
-                                Progress: {milestone.completionRate.toFixed(0)}% 
-                                ({milestone.completedIssues}/{milestone.totalIssues} issues)
-                              </p>
-                              <Badge 
-                                variant="secondary" 
-                                className="text-xs"
-                                style={{ 
-                                  backgroundColor: getMilestoneStatusColor(milestone.status),
-                                  color: 'white'
-                                }}
-                              >
-                                {milestone.status}
-                              </Badge>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+                              {milestone.status}
+                            </Badge>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
 
-                    {/* Status Badge */}
-                    <div className="w-24 shrink-0">
-                      <Badge 
-                        variant="secondary" 
-                        className="text-xs w-full justify-center"
-                        style={{ 
-                          backgroundColor: getMilestoneStatusColor(milestone.status),
-                          color: 'white'
-                        }}
-                      >
-                        {milestone.completionRate.toFixed(0)}%
-                      </Badge>
-                    </div>
+                  {/* Status Badge */}
+                  <div className="w-24 shrink-0">
+                    <Badge 
+                      variant="secondary" 
+                      className="text-xs w-full justify-center"
+                      style={{ 
+                        backgroundColor: getMilestoneStatusColor(milestone.status),
+                        color: 'white'
+                      }}
+                    >
+                      {milestone.completionRate.toFixed(0)}%
+                    </Badge>
                   </div>
                 </div>
               );
             })}
-          </div>
 
-          {/* Today Indicator */}
-          {todayPosition >= 0 && todayPosition <= 100 && (
-            <div
-              className="absolute top-8 bottom-0 w-0.5 bg-red-500 z-10"
-              style={{ left: `calc(12rem + ${todayPosition}%)` }}
-            >
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs text-red-500 font-semibold whitespace-nowrap">
-                Today
+            {/* Today Indicator */}
+            {todayPosition >= 0 && todayPosition <= 100 && (
+              <div
+                className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 pointer-events-none"
+                style={{ left: `calc(12rem + (100% - 12rem - 6rem) * ${todayPosition / 100})` }}
+              >
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-red-500 font-semibold whitespace-nowrap">
+                  Today
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Legend */}
